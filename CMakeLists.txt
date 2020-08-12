@@ -38,22 +38,17 @@ message(STATUS "PROJECT_SOURCE_DIR: " ${PROJECT_SOURCE_DIR})
 #message(FATAL_ERROR "this is a FATAL_ERROR")
 
 # add src
-aux_source_directory(${PROJECT_SOURCE_DIR}/src DIR_SRC)
+aux_source_directory(${PROJECT_SOURCE_DIR}/socket/src DIR_SRC)
+aux_source_directory(${PROJECT_SOURCE_DIR}/tool DIR_SRC)
 
 # add include directories
-include_directories(${PROJECT_SOURCE_DIR}/include)
-
+include_directories(${PROJECT_SOURCE_DIR}/socket/include)
+include_directories(${PROJECT_SOURCE_DIR}/tool)
 # set lib dir
-set(zlog_install ${PROJECT_SOURCE_DIR}/3rd_opensrc/zlog_install/${LIB})
 
-link_directories(${zlog_install})
-
-set(3rd_lib zlog pthread m crypt dl rt)
+set(3rd_lib pthread m crypt dl rt)
 
 # set lib include
-set(zlog_include ${PROJECT_SOURCE_DIR}/3rd_opensrc/zlog_install/include)
-
-include_directories(${zlog_include})
 
 #add_definitions(-Dxxx)
 
@@ -62,4 +57,3 @@ target_link_libraries(${PROJECT_NAME} ${3rd_lib})
 
 execute_process(COMMAND mkdir -p ${PROJECT_BINARY_DIR}/release)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/release)
-file(COPY ${zlog_install}/libzlog.so.1.1 DESTINATION ${EXECUTABLE_OUTPUT_PATH})

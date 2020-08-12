@@ -10,11 +10,12 @@
  */
 
 
-#ifndef __TYPES_H__
-#define __TYPES_H__
+#ifndef _TYPES_H_
+#define _TYPES_H_
 
 #ifndef CPU_WORD_SIZE
 #define CPU_WORD_SIZE 64
+#endif
 
 #if (CPU_WORD_SIZE == 32)
 typedef unsigned short int  u16;

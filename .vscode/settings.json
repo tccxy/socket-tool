@@ -1,6 +1,13 @@
 {
     "files.associations": {
-        "types.h": "c"
+        "types.h": "c",
+        "socket_interface.h": "c",
+        "rcvdata_structure.h": "c",
+        "pub.h": "c",
+        "socket_tool.h": "c",
+        "if.h": "c",
+        "error.h": "c",
+        "pthread.h": "c"
     },
     "clang.cflags": [
         "-I/usr/src/linux-headers-5.3.0-28/include",

@@ -23,10 +23,22 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <arpa/inet.h>
 #include <unistd.h>  // read()/write()
 #include <getopt.h>
+#include <pthread.h>
 
-#define SUCCESS 0
-#define ERROR 1
+#include "types.h"
+#include "error.h"
+
+
+#ifdef DEBUG_EN
+#define DEBUG(format, ...) printf("File: "__FILE__             \
+                                      ",(%s) Line: %05d: " format, \
+                                      __func__, __LINE__, ##__VA_ARGS__)
+
+#else
+#define DEBUG(format, ...)
+#endif
 
 #endif

@@ -12,7 +12,6 @@
 #ifndef _SOCKET_TOOL_H_
 #define _SOCKET_TOOL_H_
 
-#include "types.h"
 #include "pub.h"
 
 #define SOCKET_TCP 1
@@ -32,5 +31,6 @@ struct socket_tool_control
     struct sockaddr_in address;//addr msg
 };
 
+u32 socket_cli_deal(struct socket_tool_control *control);
 
 #endif

@@ -10,6 +10,7 @@
  */
 
 #include "socket_tool.h"
+#include "socket_interface.h"
 
 struct socket_tool_control g_socket_tool_control = {0};
 
@@ -107,7 +108,7 @@ static void socket_tool_cmd_parse(u32 opt, u8 *optarg, u8 *argv)
         g_socket_tool_control.w_type = SOCKET_CLIENT;
     if ('i' == opt)
     {
-        if(inet_aton(argv,&g_socket_tool_control.address.sin_addr) <0)
+        if (inet_aton((char *)argv, &g_socket_tool_control.address.sin_addr) < 0)
             printf("the parameter -i is error please check \r\n");
     }
     if ('p' == opt)
@@ -124,9 +125,9 @@ static void socket_tool_cmd_parse(u32 opt, u8 *optarg, u8 *argv)
 int main(int argc, char *argv[])
 {
     u32 opt;
-    u32 rc = 0;
     u32 option_index = 0;
     u8 *string = "p::dwn::";
+    pthread_t thread_id = 0;
 
     while ((opt = getopt_long_only(argc, argv, string, long_options, &option_index)) != -1)
     {
@@ -150,8 +151,15 @@ int main(int argc, char *argv[])
             printf_help_usage();
             break;
         default:
-            exit_usage(0);
+            exit_usage();
             break;
         }
     }
+
+    u32 ret = pthread_create(&thread_id, NULL, socket_init, (void *)&g_socket_tool_control);
+    if (0 != ret)
+    {
+        return ERROR_SOCKET_CREAT_PTH;
+    }
+    socket_cli_deal(&g_socket_tool_control);
 }
