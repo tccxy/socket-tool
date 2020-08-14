@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
             break;
         }
     }
-
+    creat_socket_fd_list();
     u32 ret = pthread_create(&thread_id, NULL, socket_init, (void *)&g_socket_tool_control);
     if (0 != ret)
     {
@@ -174,5 +174,6 @@ int main(int argc, char *argv[])
         else
             printf("socket work error .please cheack. \r\n");
     }
+
     socket_cmd_deal(&g_socket_tool_control);
 }

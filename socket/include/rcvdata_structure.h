@@ -63,9 +63,9 @@ typedef struct llist_t
 
 //函数声明
 LLIST *llist_create(int size);
-int llist_append(void *data, LLIST *handle, void *data_pos);
-int llist_prevend(void *data, LLIST *handle, void *data_pos);
-int llist_index_insert(int index, void *data, LLIST *handle, void *data_pos);
+int llist_append(void *data, LLIST *handle, void **data_pos);
+int llist_prevend(void *data, LLIST *handle, void **data_pos);
+int llist_index_insert(int index, void *data, LLIST *handle, void **data_pos);
 int llist_del(void *key, llist_cmp_t *cmp, LLIST *handle);
 int llist_all_del(void *key, llist_cmp_t *cmp, LLIST *handle);
 int llist_index_del(int index, LLIST *handle);

@@ -49,5 +49,12 @@ struct rcv_sockt_fd_msg
 };
 
 void *socket_init(void *data);
+u32 creat_socket_fd_list(void);
+u32 find_socket_fd_list(void *fdkey, void **data);
+u32 add_socket_fd_list(void *fdkey, void **data);
+u32 del_socket_fd_list(void *fdkey);
+u32 get_socket_fd_list_num();
+u32 write_rcv_data_stru(void *data, struct rcv_data_structure *stru);
+u32 read_rcv_data_stru(void *data, struct rcv_data_structure *stru);
 
 #endif

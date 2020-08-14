@@ -27,9 +27,16 @@ void *tcp_client_deal(void *cfd)
     char buf[RCV_DATA_BUF_SIZE] = {0};
     u32 size;
     int connect_fd = 0;
+    void *data_p = NULL;
+    struct rcv_sockt_fd_msg *msg = NULL;
 
     connect_fd = *((u32 *)(cfd));
-
+    if (SUCCESS == find_socket_fd_list((void *)&connect_fd, &data_p))
+    {
+        DEBUG("find_socket_fd_list addr  %p\r\n",data_p);
+        //msg = (struct rcv_sockt_fd_msg *)data_p;
+        DEBUG("tcp_client_deal has find %d table  \r\n", connect_fd);
+    }
     while (1)
     {
         memset(buf, '\0', sizeof(buf));
@@ -43,6 +50,7 @@ void *tcp_client_deal(void *cfd)
                 if (client_fd[i] == connect_fd)
                 {
                     client_fd[i] = 0;
+                    del_socket_fd_list((void *)&connect_fd);
                     break;
                 }
             }
@@ -71,6 +79,7 @@ u32 socket_int_tcp_server(struct sockaddr_in *addr)
     pthread_t thread_id = 0;
     struct sockaddr_in client_address;
     socklen_t address_len;
+    void *data_p = NULL;
 
     global_socket_fd = socket(addr->sin_family, SOCK_STREAM, 0);
     if ((global_socket_fd) < 0)
@@ -115,6 +124,9 @@ u32 socket_int_tcp_server(struct sockaddr_in *addr)
 
             if (flags > 0)
             {
+                //增加socketfd的表
+                add_socket_fd_list((void *)&connect_fd, &data_p);
+                DEBUG("find_socket_fd_list addr  %p\r\n",data_p);
                 u32 ret = pthread_create(&thread_id, NULL, tcp_client_deal, (void *)&connect_fd);
                 if (0 != ret)
                 {

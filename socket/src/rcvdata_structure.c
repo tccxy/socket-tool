@@ -44,7 +44,7 @@ ERR1:
  * @param data_pos 数据的真实存储指针
  * @return int 
  */
-int llist_append(void *data, LLIST *handle, void *data_pos)
+int llist_append(void *data, LLIST *handle, void **data_pos)
 {
    struct node_t *new = NULL;
 
@@ -65,7 +65,9 @@ int llist_append(void *data, LLIST *handle, void *data_pos)
    handle->head.prev = new;
 
    handle->num++;
-   data_pos = new->data;
+   //DEBUG("llist_append %p \r\n",new->data);
+   *data_pos = new->data;
+   //DEBUG("llist_append %p \r\n",*data_pos);
    return 0;
 ERR2:
    free(new);
@@ -81,7 +83,7 @@ ERR1:
  * @param data_pos 数据的真实存储指针
  * @return int 
  */
-int llist_prevend(void *data, LLIST *handle, void *data_pos)
+int llist_prevend(void *data, LLIST *handle, void **data_pos)
 {
    //1 接受用户数据data -> int char struct => data 要保存到链表节点信息中。
    //2 定义一个链表节点，用来保存数据 new
@@ -107,7 +109,7 @@ int llist_prevend(void *data, LLIST *handle, void *data_pos)
    handle->head.next->prev = new;
    handle->head.next = new;
    handle->num++;
-   data_pos = new->data;
+   *data_pos = new->data;
    return 0;
 ERR2:
    free(new);
@@ -124,7 +126,7 @@ ERR1:
  * @param data_pos 数据的真实存储指针
  * @return int 
  */
-int llist_index_insert(int index, void *data, LLIST *handle, void *data_pos)
+int llist_index_insert(int index, void *data, LLIST *handle, void **data_pos)
 {
    struct node_t *tail = NULL;
 
@@ -151,7 +153,7 @@ int llist_index_insert(int index, void *data, LLIST *handle, void *data_pos)
    tail->next->prev = new;
    tail->next = new;
    handle->num++;
-   data_pos = new->data;
+   *data_pos = new->data;
    return 0;
 ERR2:
    free(new);

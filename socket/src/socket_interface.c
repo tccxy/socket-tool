@@ -78,12 +78,13 @@ u32 creat_socket_fd_list()
  * @param data 如果存在返回数据指针，不存在返回空指针
  * @return u32 操作结果 0为成功
  */
-u32 find_socket_fd_list(void *fdkey, void *data)
+u32 find_socket_fd_list(void *fdkey, void **data)
 {
-    data = NULL;
+    void *data_p = NULL;
     if (NULL == FD_LIST_HANDLE)
         return ERROR_HANDLE_CREAT;
-    data = llist_ind(fdkey, cmp_fd, FD_LIST_HANDLE);
+    data_p = llist_ind(fdkey, cmp_fd, FD_LIST_HANDLE);
+    *data = data_p;
     if (NULL == data)
         return ERROR;
     else
@@ -97,15 +98,19 @@ u32 find_socket_fd_list(void *fdkey, void *data)
  * @param data 增加成功返回数据指针，失败返回空指针
  * @return u32 操作结果 0为成功
  */
-u32 add_socket_fd_list(void *fdkey, void *data)
+u32 add_socket_fd_list(void *fdkey, void **data)
 {
-    data = NULL;
+    void *data_p = NULL;
     struct rcv_sockt_fd_msg tmp_msg = {0};
     if (NULL == FD_LIST_HANDLE)
         return ERROR_HANDLE_CREAT;
     tmp_msg.s_fd = *((u32 *)fdkey);
-    if (SUCCESS == llist_append(&tmp_msg, FD_LIST_HANDLE, data))
+    if (SUCCESS == llist_append(&tmp_msg, FD_LIST_HANDLE, &data_p))
+    {
+        DEBUG("add_socket_fd_list %p \r\n", data_p);
+        *data = data_p;
         return SUCCESS;
+    }
     else
         return ERROR_HANDLE_ADD;
 }
