@@ -16,6 +16,7 @@
 #define RCV_DATA_BUF_SIZE 1024          //每一次接收的最大字节数
 #define RCV_DATA_BUF_NUM 128            //每一个socket拥有的最大缓存个数
 
+extern u32 global_socket_fd;//全局socketfd
 /**
  * @brief 一个接收包的大小
  * 

@@ -9,6 +9,7 @@ add_definitions(-DMINOR_VER=0)
 
 
 option(ARM32 "option for ARM32" OFF)
+option(ARM64 "option for ARM32" OFF)
 
 # set cmake cross compile
 #set(CMAKE_CROSEECOMPILING  TRUE)
@@ -18,13 +19,19 @@ if(ARM32)
     set(CMAKE_C_COMPILER       arm-linux-gnueabihf-gcc)
     #set(CMAKE_CXX_COMPILER     arm-linux-gnueabihf-g++)
     set(LIB lib-32)
-else()
+elseif(ARM64)
     add_definitions(-DCPU_WORD_SIZE=64)
     set(CMKA_SYSTRM_NAME       Linux)
     set(CMAKE_C_COMPILER       aarch64-linux-gnu-gcc)
     #set(CMAKE_CXX_COMPILER     aarch64-linux-gnu-g++)
     set(LIB lib)
-endif(ARM32)
+else()
+    add_definitions(-DCPU_WORD_SIZE=64)
+    set(CMKA_SYSTRM_NAME       Linux)
+    set(CMAKE_C_COMPILER       gcc)
+    #set(CMAKE_CXX_COMPILER    g++)
+    set(LIB lib)
+endif()
 
 # add define value
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -rdynamic -O2 -Wall -Wno-pointer-to-int-cast\

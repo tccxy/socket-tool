@@ -85,17 +85,18 @@ static void socket_tool_cmd_parse(u32 opt, u8 *optarg, u8 *argv)
 {
     if ('P' == opt)
     {
-        if (SUCCESS == strcmp(argv, "UDP"))
+        if (SUCCESS == strcmp((char *)optarg, "UDP"))
         {
             g_socket_tool_control.p_type = SOCK_DGRAM;
         }
-        else if (SUCCESS == strcmp(argv, "TCP"))
+        else if (SUCCESS == strcmp((char *)optarg, "TCP"))
         {
             g_socket_tool_control.p_type = SOCK_STREAM;
         }
         else
         {
             printf("the parameter -P is error please input UDP/TCP \r\n");
+            exit(0);
         }
     }
     if ('4' == opt)
@@ -108,11 +109,15 @@ static void socket_tool_cmd_parse(u32 opt, u8 *optarg, u8 *argv)
         g_socket_tool_control.w_type = SOCKET_CLIENT;
     if ('i' == opt)
     {
-        if (inet_aton((char *)argv, &g_socket_tool_control.address.sin_addr) < 0)
+        DEBUG("ip is %s \r\n", optarg);
+        if (inet_aton((char *)optarg, &g_socket_tool_control.address.sin_addr) < 0)
             printf("the parameter -i is error please check \r\n");
     }
     if ('p' == opt)
-        g_socket_tool_control.address.sin_port = htons(argv);
+    {
+        DEBUG("port is %d \r\n", atoi((char *)optarg));
+        g_socket_tool_control.address.sin_port = htons(atoi((char *)optarg));
+    }
 }
 
 /**
@@ -126,16 +131,16 @@ int main(int argc, char *argv[])
 {
     u32 opt;
     u32 option_index = 0;
-    u8 *string = "p::dwn::";
+    char *string = "P:46SCi:p:";
     pthread_t thread_id = 0;
 
     while ((opt = getopt_long_only(argc, argv, string, long_options, &option_index)) != -1)
     {
-        //printf("opt = %c\t\t", opt);
-        //printf("optarg = %s\t\t", optarg);
-        //printf("optind = %d\t\t", optind);
-        //printf("argv[optind] =%s\t\t", argv[optind]);
-        //printf("option_index = %d\n", option_index);
+        printf("opt = %c\t\t", opt);
+        printf("optarg = %s\t\t", optarg);
+        printf("optind = %d\t\t", optind);
+        printf("argv[optind] =%s\t\t", argv[optind]);
+        printf("option_index = %d\n", option_index);
         switch (opt)
         {
         case 'P':
@@ -161,5 +166,13 @@ int main(int argc, char *argv[])
     {
         return ERROR_SOCKET_CREAT_PTH;
     }
-    socket_cli_deal(&g_socket_tool_control);
+    for (;;)
+    {
+        sleep(1);
+        if(global_socket_fd>0)
+            break;
+        else
+            printf("socket work error .please cheack. \r\n");
+    }
+    socket_cmd_deal(&g_socket_tool_control);
 }

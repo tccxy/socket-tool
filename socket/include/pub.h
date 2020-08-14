@@ -32,6 +32,7 @@
 #include "error.h"
 
 
+#define DEBUG_EN
 #ifdef DEBUG_EN
 #define DEBUG(format, ...) printf("File: "__FILE__             \
                                       ",(%s) Line: %05d: " format, \

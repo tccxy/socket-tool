@@ -67,26 +67,33 @@ u32 socket_int_tcp_server(struct sockaddr_in *addr)
     u32 i = 0;
     u32 yes = 0;
     u32 connect_fd = 0;
+    s32 ret = 0;
     pthread_t thread_id = 0;
     struct sockaddr_in client_address;
     socklen_t address_len;
 
-    if ((global_socket_fd = socket(addr->sin_family, SOCK_STREAM, 0)) < 0)
+    global_socket_fd = socket(addr->sin_family, SOCK_STREAM, 0);
+    if ((global_socket_fd) < 0)
     {
         DEBUG("creat socket_fd failure \r\n");
         return ERROR_SOCKET_CREAT;
     }
+    DEBUG("creat socket_fd success \r\n");
     setsockopt(global_socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)); // 允许IP地址复用
-    if (bind(global_socket_fd, (const struct sockaddr *)&addr, sizeof(struct sockaddr)) < 0)
+
+    ret = bind(global_socket_fd, (const struct sockaddr *)addr, sizeof(struct sockaddr));
+    if (ret < 0)
     {
-        DEBUG("bind failure\r\n");
+        DEBUG("bind failure %x \r\n", ret);
         return ERROR_SOCKET_BIND;
     }
+    DEBUG("bind success \r\n");
     if (listen(global_socket_fd, SOCKET_SERVER_RCV_CONNECT_MAX) < 0)
     {
         DEBUG("listen failure\r\n");
         return ERROR_SOCKET_LISTEN;
     }
+    DEBUG("listen success \r\n");
 
     while (1)
     {
@@ -95,12 +102,12 @@ u32 socket_int_tcp_server(struct sockaddr_in *addr)
         if (connect_fd != -1)
         {
             DEBUG("a new connect is arrived %x \r\n", connect_fd);
-            int flags = -1;
+            int flags = FALSE;
             for (i = 0; i < SOCKET_SERVER_RCV_CONNECT_MAX; i++)
             {
                 if (client_fd[i] == 0)
                 {
-                    flags = i;
+                    flags = TRUE;
                     client_fd[i] = connect_fd;
                     break;
                 }
@@ -177,5 +184,5 @@ void *socket_init(void *data)
         else
             socket_init_udp_client(&control->address);
     }
+    DEBUG("socket_init out \r\n");
 }
-

@@ -31,6 +31,16 @@ struct socket_tool_control
     struct sockaddr_in address;//addr msg
 };
 
-u32 socket_cli_deal(struct socket_tool_control *control);
+
+
+
+typedef void (*dealfun)( void *); //钩子
+
+struct cmd_dealentity
+{
+    char *cmd;
+    dealfun dealentity;
+};
+u32 socket_cmd_deal(struct socket_tool_control *control);
 
 #endif

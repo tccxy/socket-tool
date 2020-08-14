@@ -15,6 +15,9 @@
 #define SUCCESS 0
 #define ERROR 1
 
+#define FALSE 0
+#define TRUE 1
+
 #define ERROR_BASE 0xffff0001
 
 #define ERROR_HANDLE_CREAT (ERROR_BASE + 1)
