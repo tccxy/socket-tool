@@ -10,7 +10,7 @@
  */
 
 #include "pub.h"
-#include "rcvdata_structure.h"
+
 
 /**
  * @brief 初始化

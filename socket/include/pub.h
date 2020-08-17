@@ -14,8 +14,8 @@
 
 #include <errno.h>
 #include <net/if.h>
-#include <netdb.h>       // getaddrinfo()
-#include <netinet/in.h>  // e.g. struct sockaddr_in on OpenBSD
+#include <netdb.h>      // getaddrinfo()
+#include <netinet/in.h> // e.g. struct sockaddr_in on OpenBSD
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,19 +24,21 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
-#include <unistd.h>  // read()/write()
+#include <unistd.h> // read()/write()
 #include <getopt.h>
 #include <pthread.h>
+#include <termios.h>
 
 #include "types.h"
 #include "error.h"
+#include "rcvdata_structure.h"
+#include "socket_interface.h"
 
-
-//#define DEBUG_EN
+#define DEBUG_EN
 #ifdef DEBUG_EN
 #define DEBUG(format, ...) printf("File: "__FILE__             \
-                                      ",(%s) Line: %05d: " format, \
-                                      __func__, __LINE__, ##__VA_ARGS__)
+                                  ",(%s) Line: %05d: " format, \
+                                  __func__, __LINE__, ##__VA_ARGS__)
 
 #else
 #define DEBUG(format, ...)

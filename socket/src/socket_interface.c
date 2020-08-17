@@ -10,8 +10,7 @@
  */
 
 #include "pub.h"
-#include "socket_interface.h"
-#include "rcvdata_structure.h"
+
 
 /*
     \>fd_list

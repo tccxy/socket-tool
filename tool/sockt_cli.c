@@ -12,7 +12,6 @@
 #include "pub.h"
 #include "socket_tool.h"
 #include "socket_cli.h"
-#include "socket_interface.h"
 
 char cmd_buff[128] = {0};
 u32 global_select_fd = 0x3f; //?的ascall码
@@ -44,6 +43,43 @@ void cmd_ambiguous(void *data)
     printf("recv    recvfile    \r\n");
 }
 
+void *get_key_async(void *data)
+{
+    struct termios stored_settings;
+    struct termios new_settings;
+    tcgetattr(0, &stored_settings);
+    new_settings = stored_settings;
+    new_settings.c_lflag &= (~ICANON);
+    new_settings.c_cc[VTIME] = 0;
+    new_settings.c_cc[VMIN] = 1;
+    tcsetattr(0, TCSANOW, &new_settings);
+#if 0
+    memset(cmd_buff, 0, sizeof(cmd_buff));
+    if (NULL == fgets(cmd_buff, sizeof(cmd_buff), stdin))
+    {
+    }
+    else
+    {
+        DEBUG("get_key_async %s \r\n", cmd_buff);
+    }
+#endif
+    *(u32 *)data = getchar();
+    putchar('\b'); // 删除回显
+
+    printf("input:  [%x]\n", *(u32 *)data);
+    tcsetattr(0, TCSANOW, &stored_settings); // 恢复终端参数
+    return SUCCESS;
+}
+
+/**
+ * @brief 异步获取键值
+ * 
+ */
+void cmd_get_key_async(void *data)
+{
+    pthread_t thread_id = 0;
+    pthread_create(&thread_id, NULL, get_key_async, data);
+}
 /**
  * @brief 退出命令
  * 
@@ -82,15 +118,17 @@ void cmd_list(void *data)
         CMD_LINE;
         CMD_INPUT_FD;
         memset(cmd_buff, 0, sizeof(cmd_buff));
-        fgets(cmd_buff, sizeof(cmd_buff), stdin);
+        if (NULL == fgets(cmd_buff, sizeof(cmd_buff), stdin))
+            return;
         input_fd = atoi(cmd_buff);
-        DEBUG("input socket_fd %x %d\r\n", input_fd,find_socket_fd_list((void *)&input_fd, &data_p));
+        DEBUG("input socket_fd %x %d\r\n", input_fd, find_socket_fd_list((void *)&input_fd, &data_p));
 
         while (SUCCESS != find_socket_fd_list((void *)&input_fd, &data_p))
         {
             CMD_REINPUT_FD;
             memset(cmd_buff, 0, sizeof(cmd_buff));
-            fgets(cmd_buff, sizeof(cmd_buff), stdin);
+            if (NULL == fgets(cmd_buff, sizeof(cmd_buff), stdin))
+                return;
             input_fd = atoi(cmd_buff);
         }
         global_select_fd = input_fd;
@@ -126,6 +164,27 @@ void cmd_sendfile(void *data)
 */
 void cmd_recv(void *data)
 {
+    void *data_p = NULL;
+    struct rcv_sockt_fd_msg *msg = NULL;
+    u32 cmd_data = 0;
+    char buf[RCV_DATA_BUF_SIZE] = {0};
+
+    cmd_get_key_async(&cmd_data); //异步获取键值
+    if (SUCCESS == find_socket_fd_list((void *)&global_select_fd, &data_p))
+    {
+        DEBUG("find_socket_fd_list addr  %p\r\n", data_p);
+        msg = (struct rcv_sockt_fd_msg *)data_p;
+        DEBUG("tcp_server_deal has find %d table  \r\n", global_select_fd);
+    }
+
+    while (global_select_fd != 0x3f && cmd_data != 0x1b)
+    {
+        //sleep(2);
+        //DEBUG("cmd_data %x \r\n", cmd_data);
+        if(0 != read_rcv_data_stru(buf, &(msg->rcv_data)))
+            printf("buf %s ", buf);
+    }
+
 }
 
 /**
@@ -162,7 +221,8 @@ u32 socket_cmd_deal(struct socket_tool_control *control)
         u8 match_flag = FALSE;
         cmd_promat();
         memset(cmd_buff, 0, sizeof(cmd_buff));
-        fgets(cmd_buff, sizeof(cmd_buff), stdin);
+        if (NULL == fgets(cmd_buff, sizeof(cmd_buff), stdin))
+            break;
         //DEBUG("cmd_buff is %s \r\n", cmd_buff);
 
         for (int i = 0; i < sizeof(cmd_table) / sizeof(struct cmd_dealentity); i++)

@@ -11,7 +11,6 @@
 
 #include "pub.h"
 #include "socket_tool.h"
-#include "socket_interface.h"
 
 //客户端fd
 u32 client_fd[SOCKET_SERVER_RCV_CONNECT_MAX] = {0};
@@ -34,7 +33,7 @@ void *tcp_server_deal(void *cfd)
     if (SUCCESS == find_socket_fd_list((void *)&connect_fd, &data_p))
     {
         DEBUG("find_socket_fd_list addr  %p\r\n", data_p);
-        //msg = (struct rcv_sockt_fd_msg *)data_p;
+        msg = (struct rcv_sockt_fd_msg *)data_p;
         DEBUG("tcp_server_deal has find %d table  \r\n", connect_fd);
     }
     while (1)
@@ -55,7 +54,7 @@ void *tcp_server_deal(void *cfd)
                 }
             }
             close(connect_fd);
-            if(connect_fd == global_select_fd)
+            if (connect_fd == global_select_fd)
             {
                 global_select_fd = 0x3f;
                 //重新刷新下命令提示符,暂时先这样处理
@@ -66,9 +65,11 @@ void *tcp_server_deal(void *cfd)
         }
         else
         {
-            printf("TCP_Analyzer:%s,%d\n", buf, (int)size);
+            DEBUG("TCP_Analyzer:%s,%d %p\r\n", buf, (int)size,msg);
+            write_rcv_data_stru(buf,&(msg->rcv_data));//像buff中写入数据
         }
     }
+    return SUCCESS;
 }
 
 /**
@@ -221,4 +222,5 @@ void *socket_init(void *data)
             socket_init_udp_client(&control->address);
     }
     DEBUG("socket_init out \r\n");
+    return SUCCESS;
 }

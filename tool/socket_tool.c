@@ -10,7 +10,7 @@
  */
 
 #include "socket_tool.h"
-#include "socket_interface.h"
+
 
 struct socket_tool_control g_socket_tool_control = {0};
 
