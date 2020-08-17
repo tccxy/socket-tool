@@ -28,7 +28,7 @@
 LLIST *FD_LIST_HANDLE = NULL;
 
 /**
- * @brief 便利打印的实现
+ * @brief 遍历打印的实现
  * 
  * @param data 
  */
@@ -36,7 +36,8 @@ void op_ls(void *data)
 {
     struct rcv_sockt_fd_msg *msg = (struct rcv_sockt_fd_msg *)data;
 
-    printf("fd is %x \r\n", msg->s_fd);
+    printf("socket_fd: %x <--> client_info(ip:port): %s:%d\r\n",
+           msg->s_fd, inet_ntoa(msg->c_addr.sin_addr), ntohs(msg->c_addr.sin_port));
 }
 
 /**
@@ -85,7 +86,7 @@ u32 find_socket_fd_list(void *fdkey, void **data)
         return ERROR_HANDLE_CREAT;
     data_p = llist_ind(fdkey, cmp_fd, FD_LIST_HANDLE);
     *data = data_p;
-    if (NULL == data)
+    if (NULL == data_p)
         return ERROR;
     else
         return SUCCESS;
@@ -143,6 +144,18 @@ u32 get_socket_fd_list_num()
     return llist_num(FD_LIST_HANDLE);
 }
 
+/**
+ * @brief socket_fdlist遍历
+ * 
+ * @return u32 
+ */
+u32 socket_fd_list_travel()
+{
+    if (NULL == FD_LIST_HANDLE)
+        return ERROR_HANDLE_CREAT;
+    llist_travel(FD_LIST_HANDLE, op_ls, 1);
+    return SUCCESS;
+}
 /**
  * @brief 向横向的循环表中插入数据
  * 

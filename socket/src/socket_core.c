@@ -22,7 +22,7 @@ u32 global_socket_fd = 0;
  * 
  * @param cfd connect_fd
  */
-void *tcp_client_deal(void *cfd)
+void *tcp_server_deal(void *cfd)
 {
     char buf[RCV_DATA_BUF_SIZE] = {0};
     u32 size;
@@ -33,9 +33,9 @@ void *tcp_client_deal(void *cfd)
     connect_fd = *((u32 *)(cfd));
     if (SUCCESS == find_socket_fd_list((void *)&connect_fd, &data_p))
     {
-        DEBUG("find_socket_fd_list addr  %p\r\n",data_p);
+        DEBUG("find_socket_fd_list addr  %p\r\n", data_p);
         //msg = (struct rcv_sockt_fd_msg *)data_p;
-        DEBUG("tcp_client_deal has find %d table  \r\n", connect_fd);
+        DEBUG("tcp_server_deal has find %d table  \r\n", connect_fd);
     }
     while (1)
     {
@@ -55,6 +55,13 @@ void *tcp_client_deal(void *cfd)
                 }
             }
             close(connect_fd);
+            if(connect_fd == global_select_fd)
+            {
+                global_select_fd = 0x3f;
+                //重新刷新下命令提示符,暂时先这样处理
+                printf("\r\nsockt_tool @%c >>", global_select_fd);
+                fflush(stdout);
+            }
             break;
         }
         else
@@ -80,6 +87,7 @@ u32 socket_int_tcp_server(struct sockaddr_in *addr)
     struct sockaddr_in client_address;
     socklen_t address_len;
     void *data_p = NULL;
+    struct rcv_sockt_fd_msg *msg = NULL;
 
     global_socket_fd = socket(addr->sin_family, SOCK_STREAM, 0);
     if ((global_socket_fd) < 0)
@@ -126,17 +134,33 @@ u32 socket_int_tcp_server(struct sockaddr_in *addr)
             {
                 //增加socketfd的表
                 add_socket_fd_list((void *)&connect_fd, &data_p);
-                DEBUG("find_socket_fd_list addr  %p\r\n",data_p);
-                u32 ret = pthread_create(&thread_id, NULL, tcp_client_deal, (void *)&connect_fd);
-                if (0 != ret)
+                DEBUG("find_socket_fd_list addr  %p\r\n", data_p);
+                if (NULL != data_p)
                 {
-                    return ERROR_SOCKET_CREAT_PTH;
+                    msg = (struct rcv_sockt_fd_msg *)(data_p);
+
+                    if (!getpeername(connect_fd, (struct sockaddr *)&client_address, &address_len))
+                    {
+                        DEBUG("c_addr is%x port is %x\r\n", client_address.sin_addr.s_addr, client_address.sin_port);
+                        msg->c_addr = client_address;
+                    }
+                    DEBUG("c_addr is%x port is %x\r\n", msg->c_addr.sin_addr.s_addr, msg->c_addr.sin_port);
+
+                    u32 ret = pthread_create(&thread_id, NULL, tcp_server_deal, (void *)&connect_fd);
+                    if (0 != ret)
+                    {
+                        return ERROR_SOCKET_CREAT_PTH;
+                    }
+                }
+                else
+                {
+                    DEBUG("add_socket_fd_list error \r\n");
                 }
             }
-            else
-            {
-                DEBUG("connect is overflow\r\n");
-            }
+        }
+        else
+        {
+            DEBUG("connect is overflow\r\n");
         }
     }
 }

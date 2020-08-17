@@ -387,7 +387,7 @@ ERR1:
 }
 
 /**
- * @brief 便利
+ * @brief 遍历
  * 
  * @param handle 操作节点
  * @param op 打印或操作的钩子
