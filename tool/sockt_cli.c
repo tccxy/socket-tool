@@ -68,8 +68,8 @@ void *get_key_async(void *data)
         //printf("\033[2D");
         putchar('\b'); // 删除回显
         putchar('\b'); // 删除回显
-        fflush(stdout);
-        printf("  \r\n");
+        //fflush(stdout);
+        //printf("  \r\n");
     }
 
     //printf("input:  [%x]\n", *(u32 *)data);
@@ -105,7 +105,7 @@ void cmd_quit(void *data)
 void cmd_help(void *data)
 {
     u8 help_msg[] =
-    "\
+        "\
     \r\n list     --->  List all linked sockets fd and client msg \
     \r\n send     --->  Send msg to select fd input through the console\
     \r\n recv     --->  Recv msg from select fd andoutput to the console\
@@ -113,7 +113,7 @@ void cmd_help(void *data)
     \r\n recvfile --->  Recv msg from select fd and save to file\
     ";
 
-    printf("%s \r\n",help_msg);
+    printf("%s \r\n", help_msg);
 }
 
 /**
@@ -210,6 +210,8 @@ void cmd_recv(void *data)
         if ((global_select_fd == 0x3f) || (cmd_data == 0x1b))
         {
             pthread_mutex_unlock(&select_fd_mutex);
+            printf("  \r\n");
+            fflush(stdout);
             break;
         }
         pthread_mutex_unlock(&select_fd_mutex);
@@ -255,6 +257,7 @@ u32 socket_cmd_deal(struct socket_tool_control *control)
     {
         u8 match_flag = FALSE;
         cmd_promat();
+        fflush(stdout);
         memset(cmd_buff, 0, sizeof(cmd_buff));
         if (NULL == fgets(cmd_buff, sizeof(cmd_buff), stdin))
             break;

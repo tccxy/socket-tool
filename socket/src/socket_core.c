@@ -49,9 +49,10 @@ void *tcp_server_deal(void *cfd)
             if (connect_fd == global_select_fd)
             {
                 global_select_fd = 0x3f;
+
                 //重新刷新下命令提示符,暂时先这样处理
-                printf("\r\nsockt_tool @%c >>", global_select_fd);
-                fflush(stdout);
+                //printf("\r\nsockt_tool @%c >>", global_select_fd);
+                //fflush(stdout);
             }
             pthread_mutex_unlock(&select_fd_mutex);
             for (int i = 0; i < SOCKET_SERVER_RCV_CONNECT_MAX; i++)
