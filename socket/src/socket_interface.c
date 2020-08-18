@@ -11,7 +11,6 @@
 
 #include "pub.h"
 
-
 /*
     \>fd_list
    ------              \>write_p
@@ -102,12 +101,16 @@ u32 add_socket_fd_list(void *fdkey, void **data)
 {
     void *data_p = NULL;
     struct rcv_sockt_fd_msg tmp_msg = {0};
+    struct rcv_sockt_fd_msg *msg = NULL;
+
     if (NULL == FD_LIST_HANDLE)
         return ERROR_HANDLE_CREAT;
     tmp_msg.s_fd = *((u32 *)fdkey);
     if (SUCCESS == llist_append(&tmp_msg, FD_LIST_HANDLE, &data_p))
     {
         DEBUG("add_socket_fd_list %p \r\n", data_p);
+        msg = (struct rcv_sockt_fd_msg *)(data_p);
+        pthread_mutex_init(&(msg->rcv_data.rcv_data_mutexa), NULL); //创建资源锁
         *data = data_p;
         return SUCCESS;
     }
@@ -123,8 +126,16 @@ u32 add_socket_fd_list(void *fdkey, void **data)
  */
 u32 del_socket_fd_list(void *fdkey)
 {
+    struct rcv_sockt_fd_msg *msg = NULL;
+    void *data_p = NULL;
+
     if (NULL == FD_LIST_HANDLE)
         return ERROR_HANDLE_CREAT;
+
+    data_p = llist_ind(fdkey, cmp_fd, FD_LIST_HANDLE);
+    msg = (struct rcv_sockt_fd_msg *)(data_p);
+    pthread_mutex_destroy(&(msg->rcv_data.rcv_data_mutexa)); //销毁资源锁
+
     if (SUCCESS == llist_del(fdkey, cmp_fd, FD_LIST_HANDLE))
         return SUCCESS;
     else
@@ -166,6 +177,8 @@ u32 write_rcv_data_stru(void *data, struct rcv_data_structure *stru)
 {
     if (strlen(data) > RCV_DATA_BUF_SIZE)
         return ERROR_SINGLE_RCV_LEN;
+
+    pthread_mutex_lock(&stru->rcv_data_mutexa);
     memcpy(stru->data_buf[stru->write_pos].data, data, strlen(data));
     stru->data_buf[stru->write_pos].data_len = strlen(data);
     //写指针循环后移
@@ -174,7 +187,8 @@ u32 write_rcv_data_stru(void *data, struct rcv_data_structure *stru)
     //如果写指针碰到了头指针，则读指针循环后移
     if (stru->write_pos == stru->read_pos)
         stru->read_pos = (stru->read_pos + 1) % RCV_DATA_BUF_NUM;
-
+    DEBUG("write_rcv_data_stru stru->write_pos %d ,stru->read_pos %d\r\n", stru->write_pos, stru->read_pos);
+    pthread_mutex_unlock(&stru->rcv_data_mutexa);
     return SUCCESS;
 }
 
@@ -188,14 +202,21 @@ u32 write_rcv_data_stru(void *data, struct rcv_data_structure *stru)
 u32 read_rcv_data_stru(void *data, struct rcv_data_structure *stru)
 {
     u32 len = 0;
+
+    pthread_mutex_lock(&stru->rcv_data_mutexa);
     //没有数据可以读取
+    //DEBUG("read_rcv_data_stru stru->write_pos %d ,stru->read_pos %d\r\n", stru->write_pos, stru->read_pos);
     if (stru->read_pos == stru->write_pos)
+    {
+        pthread_mutex_unlock(&stru->rcv_data_mutexa);
         return len;
+    }
+
     len = stru->data_buf[stru->read_pos].data_len;
     memcpy(data, stru->data_buf[stru->read_pos].data, len);
 
     //读指针循环后移
     stru->read_pos = (stru->read_pos + 1) % RCV_DATA_BUF_NUM;
-
+    pthread_mutex_unlock(&stru->rcv_data_mutexa);
     return len;
 }

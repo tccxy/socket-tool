@@ -17,7 +17,7 @@ struct socket_tool_control g_socket_tool_control = {0};
 static u8 help[] =
     "\
     \r\n Usage   : \
-    \r\n    socket_tool [options] <p_type> [d_type] [w_type] -i -p\
+    \r\n    socket_tool [options] <p_type> [d_type] [w_type] -i <ipaddr> -p <port>\
     \r\n  options\
     \r\n     -h,--help                          get app help\
     \r\n     -P,--protocal                      set work protocal\
@@ -36,7 +36,7 @@ static u8 help[] =
 static u8 exit_prese_msg[] =
     "\
     \r\n Usage   : \
-    \r\n    socket_tool -p <protocal> [type] --netmsg={...}\
+    \r\n    socket_tool [options] <p_type> [d_type] [w_type] -i <ipaddr> -p <port>\
     \r\n Try `socket_tool -h,--help' for more information.\
     ";
 
@@ -136,11 +136,11 @@ int main(int argc, char *argv[])
 
     while ((opt = getopt_long_only(argc, argv, string, long_options, &option_index)) != -1)
     {
-        printf("opt = %c\t\t", opt);
-        printf("optarg = %s\t\t", optarg);
-        printf("optind = %d\t\t", optind);
-        printf("argv[optind] =%s\t\t", argv[optind]);
-        printf("option_index = %d\n", option_index);
+        //printf("opt = %c\t\t", opt);
+        //printf("optarg = %s\t\t", optarg);
+        //printf("optind = %d\t\t", optind);
+        //printf("argv[optind] =%s\t\t", argv[optind]);
+        //printf("option_index = %d\n", option_index);
         switch (opt)
         {
         case 'P':
@@ -172,7 +172,11 @@ int main(int argc, char *argv[])
         if(global_socket_fd>0)
             break;
         else
+        {
             printf("socket work error .please cheack. \r\n");
+            exit_usage();
+        }
+
     }
 
     socket_cmd_deal(&g_socket_tool_control);

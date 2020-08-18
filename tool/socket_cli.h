@@ -17,8 +17,8 @@
 #define PROMPT_FD printf("sockt_tool @%x >>",global_select_fd)
 #define PROMPT_AMBIGUOUS printf("?Ambiguous command\r\n")
 #define CMD_LINE printf("\r\n")
-#define CMD_INPUT_FD printf("please input socket_fd to select \r\n")
-#define CMD_REINPUT_FD printf("input_fd is not found,please reinput! \r\n")
+#define CMD_INPUT_FD printf("please input socket_fd to select 'q' is back\r\n")
+#define CMD_REINPUT_FD printf("input_fd is not found,please reinput! 'q' is back\r\n")
 #define CMD_NO_CONNECT printf("there is no socket connect .\r\n")
 
 void cmd_ambiguous(void *data);

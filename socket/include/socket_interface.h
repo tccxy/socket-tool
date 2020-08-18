@@ -17,7 +17,8 @@
 #define RCV_DATA_BUF_NUM 128            //每一个socket拥有的最大缓存个数
 
 extern u32 global_socket_fd; //全局socketfd
-extern u32 global_select_fd ; //?的ascall码
+extern u32 global_select_fd; //?的ascall码
+extern pthread_mutex_t select_fd_mutex;
 /**
  * @brief 一个接收包的大小
  * 
@@ -34,6 +35,7 @@ struct rcv_data_buf
  */
 struct rcv_data_structure
 {
+    pthread_mutex_t rcv_data_mutexa; //资源锁
     struct rcv_data_buf data_buf[RCV_DATA_BUF_NUM];
     u16 write_pos;
     u16 read_pos;
@@ -45,7 +47,7 @@ struct rcv_data_structure
   */
 struct rcv_sockt_fd_msg
 {
-    u32 s_fd;   //socket fd
+    u32 s_fd;                  //socket fd
     struct sockaddr_in c_addr; //对应客户端的地址信息
     //u32 c_port; //对应客户端的端口号
     struct rcv_data_structure rcv_data;

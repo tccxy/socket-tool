@@ -12,6 +12,7 @@
 #include "pub.h"
 #include "socket_tool.h"
 
+
 //客户端fd
 u32 client_fd[SOCKET_SERVER_RCV_CONNECT_MAX] = {0};
 
@@ -44,6 +45,15 @@ void *tcp_server_deal(void *cfd)
         {
             DEBUG("%x has exit \r\n", connect_fd);
             //删除客户端fd
+            pthread_mutex_lock(&select_fd_mutex);
+            if (connect_fd == global_select_fd)
+            {
+                global_select_fd = 0x3f;
+                //重新刷新下命令提示符,暂时先这样处理
+                printf("\r\nsockt_tool @%c >>", global_select_fd);
+                fflush(stdout);
+            }
+            pthread_mutex_unlock(&select_fd_mutex);
             for (int i = 0; i < SOCKET_SERVER_RCV_CONNECT_MAX; i++)
             {
                 if (client_fd[i] == connect_fd)
@@ -54,19 +64,13 @@ void *tcp_server_deal(void *cfd)
                 }
             }
             close(connect_fd);
-            if (connect_fd == global_select_fd)
-            {
-                global_select_fd = 0x3f;
-                //重新刷新下命令提示符,暂时先这样处理
-                printf("\r\nsockt_tool @%c >>", global_select_fd);
-                fflush(stdout);
-            }
+
             break;
         }
         else
         {
-            DEBUG("TCP_Analyzer:%s,%d %p\r\n", buf, (int)size,msg);
-            write_rcv_data_stru(buf,&(msg->rcv_data));//像buff中写入数据
+            DEBUG("TCP_Analyzer:%s,%d %p\r\n", buf, (int)size, msg);
+            write_rcv_data_stru(buf, &(msg->rcv_data)); //像buff中写入数据
         }
     }
     return SUCCESS;
@@ -102,7 +106,8 @@ u32 socket_int_tcp_server(struct sockaddr_in *addr)
     ret = bind(global_socket_fd, (const struct sockaddr *)addr, sizeof(struct sockaddr));
     if (ret < 0)
     {
-        DEBUG("bind failure %x \r\n", ret);
+        printf("bind failure %x ,please Wait a moment try again .\r\n", ret);
+        exit(0);
         return ERROR_SOCKET_BIND;
     }
     DEBUG("bind success \r\n");

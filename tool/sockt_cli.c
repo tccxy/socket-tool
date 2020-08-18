@@ -14,7 +14,8 @@
 #include "socket_cli.h"
 
 char cmd_buff[128] = {0};
-u32 global_select_fd = 0x3f; //?的ascall码
+u32 global_select_fd = 0x3f;                                 //?的ascall码
+pthread_mutex_t select_fd_mutex = PTHREAD_MUTEX_INITIALIZER; //select_fd 锁
 
 struct cmd_dealentity cmd_table[] = {
     {"?", cmd_ambiguous},
@@ -53,20 +54,25 @@ void *get_key_async(void *data)
     new_settings.c_cc[VTIME] = 0;
     new_settings.c_cc[VMIN] = 1;
     tcsetattr(0, TCSANOW, &new_settings);
-#if 0
-    memset(cmd_buff, 0, sizeof(cmd_buff));
-    if (NULL == fgets(cmd_buff, sizeof(cmd_buff), stdin))
+    while (1)
     {
+        *(u32 *)data = getchar();
+        if ((*(u32 *)data == 0x1b) || (global_select_fd == 0x3f))
+        {
+            break;
+        }
     }
-    else
-    {
-        DEBUG("get_key_async %s \r\n", cmd_buff);
-    }
-#endif
-    *(u32 *)data = getchar();
-    putchar('\b'); // 删除回显
 
-    printf("input:  [%x]\n", *(u32 *)data);
+    if (*(u32 *)data == 0x1b)
+    {
+        //printf("\033[2D");
+        putchar('\b'); // 删除回显
+        putchar('\b'); // 删除回显
+        fflush(stdout);
+        printf("  \r\n");
+    }
+
+    //printf("input:  [%x]\n", *(u32 *)data);
     tcsetattr(0, TCSANOW, &stored_settings); // 恢复终端参数
     return SUCCESS;
 }
@@ -78,6 +84,7 @@ void *get_key_async(void *data)
 void cmd_get_key_async(void *data)
 {
     pthread_t thread_id = 0;
+
     pthread_create(&thread_id, NULL, get_key_async, data);
 }
 /**
@@ -94,8 +101,19 @@ void cmd_quit(void *data)
  * 
  * @param data 
  */
+
 void cmd_help(void *data)
 {
+    u8 help_msg[] =
+    "\
+    \r\n list     --->  List all linked sockets fd and client msg \
+    \r\n send     --->  Send msg to select fd input through the console\
+    \r\n recv     --->  Recv msg from select fd andoutput to the console\
+    \r\n sendfile --->  Send the local filefile to select fd\
+    \r\n recvfile --->  Recv msg from select fd and save to file\
+    ";
+
+    printf("%s \r\n",help_msg);
 }
 
 /**
@@ -123,15 +141,21 @@ void cmd_list(void *data)
         input_fd = atoi(cmd_buff);
         DEBUG("input socket_fd %x %d\r\n", input_fd, find_socket_fd_list((void *)&input_fd, &data_p));
 
-        while (SUCCESS != find_socket_fd_list((void *)&input_fd, &data_p))
+        while (1)
         {
+            if (SUCCESS == find_socket_fd_list((void *)&input_fd, &data_p))
+                break;
+            if ('q' == cmd_buff[0])
+                return;
             CMD_REINPUT_FD;
             memset(cmd_buff, 0, sizeof(cmd_buff));
             if (NULL == fgets(cmd_buff, sizeof(cmd_buff), stdin))
                 return;
             input_fd = atoi(cmd_buff);
         }
+        pthread_mutex_lock(&select_fd_mutex);
         global_select_fd = input_fd;
+        pthread_mutex_unlock(&select_fd_mutex);
     }
     else
     {
@@ -170,21 +194,32 @@ void cmd_recv(void *data)
     char buf[RCV_DATA_BUF_SIZE] = {0};
 
     cmd_get_key_async(&cmd_data); //异步获取键值
+    pthread_mutex_lock(&select_fd_mutex);
+
     if (SUCCESS == find_socket_fd_list((void *)&global_select_fd, &data_p))
     {
         DEBUG("find_socket_fd_list addr  %p\r\n", data_p);
         msg = (struct rcv_sockt_fd_msg *)data_p;
         DEBUG("tcp_server_deal has find %d table  \r\n", global_select_fd);
     }
-
-    while (global_select_fd != 0x3f && cmd_data != 0x1b)
+    pthread_mutex_unlock(&select_fd_mutex);
+    while (1)
     {
         //sleep(2);
-        //DEBUG("cmd_data %x \r\n", cmd_data);
-        if(0 != read_rcv_data_stru(buf, &(msg->rcv_data)))
-            printf("buf %s ", buf);
+        pthread_mutex_lock(&select_fd_mutex);
+        if ((global_select_fd == 0x3f) || (cmd_data == 0x1b))
+        {
+            pthread_mutex_unlock(&select_fd_mutex);
+            break;
+        }
+        pthread_mutex_unlock(&select_fd_mutex);
+        // DEBUG("cmd_data %x global_select_fd %x\r\n", cmd_data, global_select_fd);
+        if (0 != read_rcv_data_stru(buf, &(msg->rcv_data)))
+        {
+            printf("%s", buf);
+            fflush(stdout);
+        }
     }
-
 }
 
 /**
