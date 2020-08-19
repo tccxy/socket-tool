@@ -63,7 +63,7 @@ sockt_tool @4 >>recv
 this is socket_fd 4  
 sockt_tool @4 >>
 //如果想切换另一路，直接再次输入list即可
-sockt_tool @? >>list
+sockt_tool @4 >>list
 socket_fd: 5 <--> client_info(ip:port): 192.168.5.196:54225
 socket_fd: 4 <--> client_info(ip:port): 192.168.5.196:54223
 
