@@ -14,8 +14,10 @@
 #include "socket_cli.h"
 
 char cmd_buff[128] = {0};
+struct send_sockt_fd_msg send_msg = {0};
 u32 global_select_fd = 0x3f;                                 //?的ascall码
 pthread_mutex_t select_fd_mutex = PTHREAD_MUTEX_INITIALIZER; //select_fd 锁
+pthread_mutex_t send_msg_mutex = PTHREAD_MUTEX_INITIALIZER;  //select_fd 锁
 
 struct cmd_dealentity cmd_table[] = {
     {"?", cmd_ambiguous},
@@ -46,6 +48,7 @@ void cmd_ambiguous(void *data)
 
 void *get_key_async(void *data)
 {
+    u32 get_num = 0;
     struct termios stored_settings;
     struct termios new_settings;
     tcgetattr(0, &stored_settings);
@@ -57,10 +60,23 @@ void *get_key_async(void *data)
     while (1)
     {
         *(u32 *)data = getchar();
+
         if ((*(u32 *)data == 0x1b) || (global_select_fd == 0x3f))
         {
             break;
         }
+
+        pthread_mutex_lock(&send_msg_mutex);
+        send_msg.send_buf[get_num] = *(u8 *)data;
+        get_num++;
+        if ((*(u32 *)data == 0x0a) || (get_num >= SEND_DATA_BUF_SIZE))
+        {
+            send_msg.send_len = get_num;
+            if (get_num >= SEND_DATA_BUF_SIZE)
+                *(u32 *)data = 0x0d;
+            get_num = 0;
+        }
+        pthread_mutex_unlock(&send_msg_mutex);
     }
 
     if (*(u32 *)data == 0x1b)
@@ -87,6 +103,7 @@ void cmd_get_key_async(void *data)
 
     pthread_create(&thread_id, NULL, get_key_async, data);
 }
+
 /**
  * @brief 退出命令
  * 
@@ -139,7 +156,8 @@ void cmd_list(void *data)
         if (NULL == fgets(cmd_buff, sizeof(cmd_buff), stdin))
             return;
         input_fd = atoi(cmd_buff);
-        DEBUG("input socket_fd %x %d\r\n", input_fd, find_socket_fd_list((void *)&input_fd, &data_p));
+        DEBUG("input socket_fd %x %d\r\n", input_fd,
+              find_socket_fd_list((void *)&input_fd, &data_p));
 
         while (1)
         {
@@ -170,6 +188,41 @@ void cmd_list(void *data)
  */
 void cmd_send(void *data)
 {
+    u32 cmd_data = 0;
+
+    cmd_get_key_async(&cmd_data); //异步获取键值
+
+    while (1)
+    {
+        //sleep(2);
+        pthread_mutex_lock(&select_fd_mutex);
+        if ((global_select_fd == 0x3f) || (cmd_data == 0x1b))
+        {
+            pthread_mutex_unlock(&select_fd_mutex);
+            printf("  \r\n");
+            fflush(stdout);
+            break;
+        }
+        pthread_mutex_unlock(&select_fd_mutex);
+        //printf("cmd_data %x global_select_fd %x send_msg.send_len %d\r\n",
+        //      cmd_data, global_select_fd, send_msg.send_len);
+
+        pthread_mutex_lock(&send_msg_mutex);
+
+        if (send_msg.send_len != send(global_select_fd, send_msg.send_buf,
+                                      send_msg.send_len, 0))
+        {
+            printf("send error .may be the connect has exit \r\n");
+            fflush(stdout);
+            pthread_mutex_unlock(&send_msg_mutex);
+            break;
+        }
+        else
+        {
+            send_msg.send_len = 0;
+        }
+        pthread_mutex_unlock(&send_msg_mutex);
+    }
 }
 
 /**

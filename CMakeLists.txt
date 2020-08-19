@@ -9,7 +9,7 @@ add_definitions(-DMINOR_VER=0)
 
 
 option(ARM32 "option for ARM32" OFF)
-option(ARM64 "option for ARM32" OFF)
+option(ARM64 "option for ARM64" OFF)
 
 # set cmake cross compile
 #set(CMAKE_CROSEECOMPILING  TRUE)
