@@ -12,6 +12,18 @@
 #include "pub.h"
 
 /**
+ * @brief udp服务端初始化
+ * 
+ * @param addr 地址信息
+ * @return u32 操作结果
+ */
+u32 socket_init_udp_server(struct sockaddr_in *addr)
+{
+    return 0;
+}
+
+
+/**
  * @brief 
  * 
  * @param addr 

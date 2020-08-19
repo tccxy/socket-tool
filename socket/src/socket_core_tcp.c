@@ -171,3 +171,14 @@ u32 socket_int_tcp_server(struct sockaddr_in *addr)
         }
     }
 }
+
+/**
+ * @brief tcp客户端初始化
+ * 
+ * @param addr 地址信息
+ * @return u32 操作结果
+ */
+u32 socket_int_tcp_client(struct sockaddr_in *addr)
+{
+    return 0;
+}

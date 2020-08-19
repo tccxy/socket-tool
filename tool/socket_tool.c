@@ -136,7 +136,7 @@ void *socket_init(void *data)
         else
             socket_int_tcp_client(&control->address);
     }
-    if (SOCKET_TCP == control->p_type)
+    if (SOCKET_UDP == control->p_type)
     {
         if (SOCKET_SERVER == control->w_type)
             socket_init_udp_server(&control->address);
@@ -146,7 +146,6 @@ void *socket_init(void *data)
     DEBUG("socket_init out \r\n");
     return SUCCESS;
 }
-
 
 /**
  * @brief 
@@ -207,16 +206,9 @@ int main(int argc, char *argv[])
     }
     if (SOCKET_TCP == g_socket_tool_control.p_type)
     {
-        if (SOCKET_SERVER == g_socket_tool_control.w_type)
-            socket_cmd_deal_tcp_server(&g_socket_tool_control);
-        else
-            ;
+        socket_cmd_deal_tcp(&g_socket_tool_control);
     }
-    if (SOCKET_TCP == g_socket_tool_control.p_type)
+    if (SOCKET_UDP == g_socket_tool_control.p_type)
     {
-        if (SOCKET_SERVER == g_socket_tool_control.p_type)
-            ;
-        else
-            ;
     }
 }

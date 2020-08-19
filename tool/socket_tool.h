@@ -36,6 +36,6 @@ struct cmd_dealentity
     char *cmd;
     dealfun dealentity;
 };
-u32 socket_cmd_deal_tcp_server(struct socket_tool_control *control);
+u32 socket_cmd_deal_tcp(struct socket_tool_control *control);
 
 #endif

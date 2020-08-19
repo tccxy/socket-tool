@@ -243,19 +243,24 @@ void cmd_recv(void *data)
 {
     void *data_p = NULL;
     struct rcv_sockt_fd_msg *msg = NULL;
+    struct rcv_data_structure *rcv_data = NULL;
     u32 cmd_data = 0;
     char buf[RCV_DATA_BUF_SIZE] = {0};
+    struct socket_tool_control *control = (struct socket_tool_control *)data;
 
     cmd_get_key_async(&cmd_data); //异步获取键值
-    pthread_mutex_lock(&socket_fd_mutex);
-
-    if (SUCCESS == find_socket_fd_list((void *)&global_select_fd, &data_p))
+    if (SOCKET_SERVER == control->w_type)
     {
-        DEBUG("find_socket_fd_list addr  %p\r\n", data_p);
-        msg = (struct rcv_sockt_fd_msg *)data_p;
-        DEBUG("tcp_server_deal has find %d table  \r\n", global_select_fd);
+        pthread_mutex_lock(&socket_fd_mutex);
+        if (SUCCESS == find_socket_fd_list((void *)&global_select_fd, &data_p))
+        {
+            DEBUG("find_socket_fd_list addr  %p\r\n", data_p);
+            msg = (struct rcv_sockt_fd_msg *)data_p;
+            DEBUG("tcp_server_deal has find %d table  \r\n", global_select_fd);
+        }
+        pthread_mutex_unlock(&socket_fd_mutex);
+        rcv_data = &(msg->rcv_data);
     }
-    pthread_mutex_unlock(&socket_fd_mutex);
     while (1)
     {
         //sleep(2);
@@ -268,8 +273,9 @@ void cmd_recv(void *data)
             break;
         }
         pthread_mutex_unlock(&socket_fd_mutex);
+
         // DEBUG("cmd_data %x global_select_fd %x\r\n", cmd_data, global_select_fd);
-        if (0 != read_rcv_data_stru(buf, &(msg->rcv_data)))
+        if (0 != read_rcv_data_stru(buf, rcv_data))
         {
             printf("%s", buf);
             fflush(stdout);
@@ -304,8 +310,11 @@ void cmd_promat(void)
  * @param work_type 
  * @return u3 
  */
-u32 socket_cmd_deal_tcp_server(struct socket_tool_control *control)
+u32 socket_cmd_deal_tcp(struct socket_tool_control *control)
 {
+    struct cmd_dealentity *entry = NULL;
+    struct cmd_dealentity *entry_start = cmd_table_tcp_server;
+    
     while (1)
     {
         u8 match_flag = FALSE;
@@ -314,15 +323,15 @@ u32 socket_cmd_deal_tcp_server(struct socket_tool_control *control)
         memset(cmd_buff, 0, sizeof(cmd_buff));
         if (NULL == fgets(cmd_buff, sizeof(cmd_buff), stdin))
             break;
-        //DEBUG("cmd_buff is %s \r\n", cmd_buff);
 
-        for (int i = 0; i < sizeof(cmd_table_tcp_server) / sizeof(struct cmd_dealentity); i++)
+        for (entry = entry_start; entry->cmd != NULL; entry++)
         {
-            if ((NULL != cmd_table_tcp_server[i].cmd) && (SUCCESS == strncmp(cmd_buff, cmd_table_tcp_server[i].cmd, strlen(cmd_table_tcp_server[i].cmd))))
+            //printf("entry->cmd is %s %d %d \r\n", entry->cmd,strlen(cmd_buff),strlen(entry->cmd));
+            if (SUCCESS == strncmp(cmd_buff, entry->cmd, strlen(entry->cmd)))
             {
-                //DEBUG("match cmd is  %s \r\n", cmd_buff);
+                DEBUG("match cmd is  %s \r\n", cmd_buff);
                 match_flag = TRUE;
-                cmd_table_tcp_server[i].dealentity(control);
+                entry->dealentity(control);
             }
         }
         if (FALSE == match_flag)
