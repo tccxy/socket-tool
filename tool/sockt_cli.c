@@ -61,7 +61,7 @@ void *get_key_async(void *data)
     {
         *(u32 *)data = getchar();
 
-        if ((*(u32 *)data == 0x1b) || (global_select_fd == 0x3f))
+        if ((*(u32 *)data == CMD_ESC) || (global_select_fd == 0x3f))
         {
             break;
         }
@@ -69,17 +69,17 @@ void *get_key_async(void *data)
         pthread_mutex_lock(&send_msg_mutex);
         send_msg.send_buf[get_num] = *(u8 *)data;
         get_num++;
-        if ((*(u32 *)data == 0x0a) || (get_num >= SEND_DATA_BUF_SIZE))
+        if ((*(u32 *)data == CMD_ENTER) || (get_num >= SEND_DATA_BUF_SIZE))
         {
             send_msg.send_len = get_num;
             if (get_num >= SEND_DATA_BUF_SIZE)
-                *(u32 *)data = 0x0d;
+                *(u32 *)data = CMD_ENTER;
             get_num = 0;
         }
         pthread_mutex_unlock(&send_msg_mutex);
     }
 
-    if (*(u32 *)data == 0x1b)
+    if (*(u32 *)data == CMD_ESC)
     {
         //printf("\033[2D");
         putchar('\b'); // 删除回显
@@ -196,7 +196,7 @@ void cmd_send(void *data)
     {
         //sleep(2);
         pthread_mutex_lock(&select_fd_mutex);
-        if ((global_select_fd == 0x3f) || (cmd_data == 0x1b))
+        if ((global_select_fd == 0x3f) || (cmd_data == CMD_ESC))
         {
             pthread_mutex_unlock(&select_fd_mutex);
             printf("  \r\n");

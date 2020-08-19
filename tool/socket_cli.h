@@ -13,6 +13,8 @@
 #define _SOCKET_CLI_H_
 
 
+#define CMD_ESC  0x1b
+#define CMD_ENTER 0x0a
 #define PROMPT printf("sockt_tool @%c >>",global_select_fd)
 #define PROMPT_FD printf("sockt_tool @%x >>",global_select_fd)
 #define PROMPT_AMBIGUOUS printf("?Ambiguous command\r\n")
