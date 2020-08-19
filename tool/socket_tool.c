@@ -10,7 +10,7 @@
  */
 
 #include "socket_tool.h"
-
+#include "socket_interface.h"
 
 struct socket_tool_control g_socket_tool_control = {0};
 
@@ -121,6 +121,34 @@ static void socket_tool_cmd_parse(u32 opt, u8 *optarg, u8 *argv)
 }
 
 /**
+ * @brief socket初始化程序
+ * 
+ * @param control 控制信息数据结构
+ * 
+ */
+void *socket_init(void *data)
+{
+    struct socket_tool_control *control = (struct socket_tool_control *)data;
+    if (SOCKET_TCP == control->p_type)
+    {
+        if (SOCKET_SERVER == control->w_type)
+            socket_int_tcp_server(&control->address);
+        else
+            socket_int_tcp_client(&control->address);
+    }
+    if (SOCKET_TCP == control->p_type)
+    {
+        if (SOCKET_SERVER == control->w_type)
+            socket_init_udp_server(&control->address);
+        else
+            socket_init_udp_client(&control->address);
+    }
+    DEBUG("socket_init out \r\n");
+    return SUCCESS;
+}
+
+
+/**
  * @brief 
  * 
  * @param argc 
@@ -169,15 +197,26 @@ int main(int argc, char *argv[])
     for (;;)
     {
         sleep(1);
-        if(global_socket_fd>0)
+        if (global_socket_fd > 0)
             break;
         else
         {
             printf("socket work error .please cheack. \r\n");
             exit_usage();
         }
-
     }
-
-    socket_cmd_deal(&g_socket_tool_control);
+    if (SOCKET_TCP == g_socket_tool_control.p_type)
+    {
+        if (SOCKET_SERVER == g_socket_tool_control.w_type)
+            socket_cmd_deal_tcp_server(&g_socket_tool_control);
+        else
+            ;
+    }
+    if (SOCKET_TCP == g_socket_tool_control.p_type)
+    {
+        if (SOCKET_SERVER == g_socket_tool_control.p_type)
+            ;
+        else
+            ;
+    }
 }

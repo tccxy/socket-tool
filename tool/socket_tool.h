@@ -14,11 +14,6 @@
 
 #include "pub.h"
 
-#define SOCKET_TCP 1
-#define SOCKET_UDP 2
-
-#define SOCKET_SERVER 1
-#define SOCKET_CLIENT 2
 
 /**
  * @brief 控制信息数据结构
@@ -41,6 +36,6 @@ struct cmd_dealentity
     char *cmd;
     dealfun dealentity;
 };
-u32 socket_cmd_deal(struct socket_tool_control *control);
+u32 socket_cmd_deal_tcp_server(struct socket_tool_control *control);
 
 #endif

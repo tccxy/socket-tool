@@ -14,12 +14,12 @@
 #include "socket_cli.h"
 
 char cmd_buff[128] = {0};
-struct send_sockt_fd_msg send_msg = {0};
+struct send_data_buf send_msg = {0};
 u32 global_select_fd = 0x3f;                                 //?的ascall码
-pthread_mutex_t select_fd_mutex = PTHREAD_MUTEX_INITIALIZER; //select_fd 锁
+pthread_mutex_t socket_fd_mutex = PTHREAD_MUTEX_INITIALIZER; //select_fd 锁
 pthread_mutex_t send_msg_mutex = PTHREAD_MUTEX_INITIALIZER;  //select_fd 锁
 
-struct cmd_dealentity cmd_table[] = {
+struct cmd_dealentity cmd_table_tcp_server[] = {
     {"?", cmd_ambiguous},
     {"help", cmd_help},
     {"quit", cmd_quit},
@@ -171,9 +171,9 @@ void cmd_list(void *data)
                 return;
             input_fd = atoi(cmd_buff);
         }
-        pthread_mutex_lock(&select_fd_mutex);
+        pthread_mutex_lock(&socket_fd_mutex);
         global_select_fd = input_fd;
-        pthread_mutex_unlock(&select_fd_mutex);
+        pthread_mutex_unlock(&socket_fd_mutex);
     }
     else
     {
@@ -195,15 +195,15 @@ void cmd_send(void *data)
     while (1)
     {
         //sleep(2);
-        pthread_mutex_lock(&select_fd_mutex);
+        pthread_mutex_lock(&socket_fd_mutex);
         if ((global_select_fd == 0x3f) || (cmd_data == CMD_ESC))
         {
-            pthread_mutex_unlock(&select_fd_mutex);
+            pthread_mutex_unlock(&socket_fd_mutex);
             printf("  \r\n");
             fflush(stdout);
             break;
         }
-        pthread_mutex_unlock(&select_fd_mutex);
+        pthread_mutex_unlock(&socket_fd_mutex);
         //printf("cmd_data %x global_select_fd %x send_msg.send_len %d\r\n",
         //      cmd_data, global_select_fd, send_msg.send_len);
 
@@ -247,7 +247,7 @@ void cmd_recv(void *data)
     char buf[RCV_DATA_BUF_SIZE] = {0};
 
     cmd_get_key_async(&cmd_data); //异步获取键值
-    pthread_mutex_lock(&select_fd_mutex);
+    pthread_mutex_lock(&socket_fd_mutex);
 
     if (SUCCESS == find_socket_fd_list((void *)&global_select_fd, &data_p))
     {
@@ -255,19 +255,19 @@ void cmd_recv(void *data)
         msg = (struct rcv_sockt_fd_msg *)data_p;
         DEBUG("tcp_server_deal has find %d table  \r\n", global_select_fd);
     }
-    pthread_mutex_unlock(&select_fd_mutex);
+    pthread_mutex_unlock(&socket_fd_mutex);
     while (1)
     {
         //sleep(2);
-        pthread_mutex_lock(&select_fd_mutex);
+        pthread_mutex_lock(&socket_fd_mutex);
         if ((global_select_fd == 0x3f) || (cmd_data == 0x1b))
         {
-            pthread_mutex_unlock(&select_fd_mutex);
+            pthread_mutex_unlock(&socket_fd_mutex);
             printf("  \r\n");
             fflush(stdout);
             break;
         }
-        pthread_mutex_unlock(&select_fd_mutex);
+        pthread_mutex_unlock(&socket_fd_mutex);
         // DEBUG("cmd_data %x global_select_fd %x\r\n", cmd_data, global_select_fd);
         if (0 != read_rcv_data_stru(buf, &(msg->rcv_data)))
         {
@@ -304,7 +304,7 @@ void cmd_promat(void)
  * @param work_type 
  * @return u3 
  */
-u32 socket_cmd_deal(struct socket_tool_control *control)
+u32 socket_cmd_deal_tcp_server(struct socket_tool_control *control)
 {
     while (1)
     {
@@ -316,13 +316,13 @@ u32 socket_cmd_deal(struct socket_tool_control *control)
             break;
         //DEBUG("cmd_buff is %s \r\n", cmd_buff);
 
-        for (int i = 0; i < sizeof(cmd_table) / sizeof(struct cmd_dealentity); i++)
+        for (int i = 0; i < sizeof(cmd_table_tcp_server) / sizeof(struct cmd_dealentity); i++)
         {
-            if ((NULL != cmd_table[i].cmd) && (SUCCESS == strncmp(cmd_buff, cmd_table[i].cmd, strlen(cmd_table[i].cmd))))
+            if ((NULL != cmd_table_tcp_server[i].cmd) && (SUCCESS == strncmp(cmd_buff, cmd_table_tcp_server[i].cmd, strlen(cmd_table_tcp_server[i].cmd))))
             {
                 //DEBUG("match cmd is  %s \r\n", cmd_buff);
                 match_flag = TRUE;
-                cmd_table[i].dealentity(control);
+                cmd_table_tcp_server[i].dealentity(control);
             }
         }
         if (FALSE == match_flag)

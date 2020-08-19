@@ -12,14 +12,33 @@
 #ifndef _SOCKET_INTERFACE_H_
 #define _SOCKET_INTERFACE_H_
 
-#define SOCKET_SERVER_RCV_CONNECT_MAX 6 //服务端接收的最大连接数
-#define RCV_DATA_BUF_SIZE 1024          //每一次接收的最大字节数
+#define SOCKET_SERVER_RCV_CONNECT_MAX 6 //TCP服务端接收的最大连接数
 #define RCV_DATA_BUF_NUM 128            //每一个socket拥有的最大缓存个数
+#define RCV_DATA_BUF_SIZE 1024          //每一次接收的最大字节数
 #define SEND_DATA_BUF_SIZE 1024         //每一次接收的最大字节数
+
+
+#define SOCKET_TCP 1
+#define SOCKET_UDP 2
+
+#define SOCKET_SERVER 1
+#define SOCKET_CLIENT 2
 
 extern u32 global_socket_fd;            //全局socketfd
 extern u32 global_select_fd;            //?的ascall码
-extern pthread_mutex_t select_fd_mutex;
+extern pthread_mutex_t socket_fd_mutex;
+
+
+/**
+ * @brief 发送数据存储结构
+ * 
+ */
+struct send_data_buf
+{
+    u32 send_len; //发送的长度
+    char send_buf[SEND_DATA_BUF_SIZE];
+};
+
 /**
  * @brief 一个接收包的大小
  * 
@@ -54,15 +73,7 @@ struct rcv_sockt_fd_msg
     struct rcv_data_structure rcv_data;
 };
 
-/**
- * @brief 发送数据存储结构
- * 
- */
-struct send_sockt_fd_msg
-{
-    u32 send_len; //发送的长度
-    char send_buf[SEND_DATA_BUF_SIZE];
-};
+
 
 void *socket_init(void *data);
 u32 creat_socket_fd_list(void);
@@ -74,4 +85,8 @@ u32 socket_fd_list_travel();
 u32 write_rcv_data_stru(void *data, struct rcv_data_structure *stru);
 u32 read_rcv_data_stru(void *data, struct rcv_data_structure *stru);
 
+u32 socket_int_tcp_server(struct sockaddr_in *addr);
+u32 socket_int_tcp_client(struct sockaddr_in *addr);
+u32 socket_init_udp_server(struct sockaddr_in *addr);
+u32 socket_init_udp_client(struct sockaddr_in *addr);
 #endif

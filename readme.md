@@ -1,7 +1,7 @@
 # socket-tool
 socket的测试工具，目前支持TCP/UDP的服务端和客户端采用多线程加速，TCP服务端最大接收6路客户端，位于socket_interface.h中可进行更改。
 
-整个的数据结构设计模型如下
+TCp server 整个的数据结构设计模型如下
 ![structire.png](./structure.png)
 
 工程的编译基于cmake

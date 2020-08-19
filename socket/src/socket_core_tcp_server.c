@@ -10,7 +10,7 @@
  */
 
 #include "pub.h"
-#include "socket_tool.h"
+//#include "socket_tool.h"
 
 
 //客户端fd
@@ -45,7 +45,7 @@ void *tcp_server_deal(void *cfd)
         {
             DEBUG("%x has exit \r\n", connect_fd);
             //删除客户端fd
-            pthread_mutex_lock(&select_fd_mutex);
+            pthread_mutex_lock(&socket_fd_mutex);
             if (connect_fd == global_select_fd)
             {
                 global_select_fd = 0x3f;
@@ -54,7 +54,7 @@ void *tcp_server_deal(void *cfd)
                 //printf("\r\nsockt_tool @%c >>", global_select_fd);
                 //fflush(stdout);
             }
-            pthread_mutex_unlock(&select_fd_mutex);
+            pthread_mutex_unlock(&socket_fd_mutex);
             for (int i = 0; i < SOCKET_SERVER_RCV_CONNECT_MAX; i++)
             {
                 if (client_fd[i] == connect_fd)
@@ -170,63 +170,4 @@ u32 socket_int_tcp_server(struct sockaddr_in *addr)
             DEBUG("connect is overflow\r\n");
         }
     }
-}
-/**
- * @brief tcp客户端初始化
- * 
- * @param addr 地址信息
- * @return u32 操作结果
- */
-u32 socket_int_tcp_client(struct sockaddr_in *addr)
-{
-    return 0;
-}
-
-/**
- * @brief udp服务端初始化
- * 
- * @param addr 地址信息
- * @return u32 操作结果
- */
-u32 socket_init_udp_server(struct sockaddr_in *addr)
-{
-    return 0;
-}
-
-/**
- * @brief 
- * 
- * @param addr 
- * @return u32 
- */
-u32 socket_init_udp_client(struct sockaddr_in *addr)
-{
-    return 0;
-}
-
-/**
- * @brief socket初始化程序
- * 
- * @param control 控制信息数据结构
- * 
- */
-void *socket_init(void *data)
-{
-    struct socket_tool_control *control = (struct socket_tool_control *)data;
-    if (SOCKET_TCP == control->p_type)
-    {
-        if (SOCKET_SERVER == control->w_type)
-            socket_int_tcp_server(&control->address);
-        else
-            socket_int_tcp_client(&control->address);
-    }
-    if (SOCKET_TCP == control->p_type)
-    {
-        if (SOCKET_SERVER == control->w_type)
-            socket_init_udp_server(&control->address);
-        else
-            socket_init_udp_client(&control->address);
-    }
-    DEBUG("socket_init out \r\n");
-    return SUCCESS;
 }
