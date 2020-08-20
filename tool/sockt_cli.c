@@ -13,17 +13,30 @@
 #include "socket_tool.h"
 #include "socket_cli.h"
 
-char cmd_buff[128] = {0};
-struct send_data_buf send_msg = {0};
-u32 global_select_fd = 0x3f;                                 //?的ascall码
-pthread_mutex_t socket_fd_mutex = PTHREAD_MUTEX_INITIALIZER; //select_fd 锁
-pthread_mutex_t send_msg_mutex = PTHREAD_MUTEX_INITIALIZER;  //select_fd 锁
+u32 global_select_fd = 0x3f;                                        //?的ascall码
+pthread_mutex_t global_select_fd_mutex = PTHREAD_MUTEX_INITIALIZER; //select_fd 锁
 
-struct cmd_dealentity cmd_table_tcp_server[] = {
+static char cmd_buff[128] = {0};
+
+static struct send_data_buf send_msg = {0};                        //发送buf
+static pthread_mutex_t send_msg_mutex = PTHREAD_MUTEX_INITIALIZER; //发送数据锁
+
+static struct cmd_dealentity cmd_table_tcp_server[] = {
     {"?", cmd_ambiguous},
     {"help", cmd_help},
     {"quit", cmd_quit},
     {"list", cmd_list},
+    {"send", cmd_send},
+    {"sendfile", cmd_sendfile},
+    {"recv", cmd_recv},
+    {"recvfile", cmd_recv_file},
+    {NULL, NULL},
+};
+
+static struct cmd_dealentity cmd_table_tcp_client[] = {
+    {"?", cmd_ambiguous},
+    {"help", cmd_help},
+    {"quit", cmd_quit},
     {"send", cmd_send},
     {"sendfile", cmd_sendfile},
     {"recv", cmd_recv},
@@ -38,10 +51,13 @@ struct cmd_dealentity cmd_table_tcp_server[] = {
  */
 void cmd_ambiguous(void *data)
 {
+    struct socket_tool_control *control = (struct socket_tool_control *)data;
+
     printf("Commands may be abbreviated . Commands are:\r\n");
     printf("\r\n");
-    printf("?       help        \r\n");
-    printf("quit    list        \r\n");
+    printf("?       help    quit    \r\n");
+    if (SOCKET_SERVER == control->w_type)
+        printf("list        \r\n");
     printf("send    sendfile    \r\n");
     printf("recv    recvfile    \r\n");
 }
@@ -123,7 +139,7 @@ void cmd_help(void *data)
 {
     u8 help_msg[] =
         "\
-    \r\n list     --->  List all linked sockets fd and client msg \
+    \r\n list     --->  List all linked sockets fd and client msg(tcp server-is-valid) \
     \r\n send     --->  Send msg to select fd input through the console\
     \r\n recv     --->  Recv msg from select fd andoutput to the console\
     \r\n sendfile --->  Send the local filefile to select fd\
@@ -171,9 +187,9 @@ void cmd_list(void *data)
                 return;
             input_fd = atoi(cmd_buff);
         }
-        pthread_mutex_lock(&socket_fd_mutex);
+        pthread_mutex_lock(&global_select_fd_mutex);
         global_select_fd = input_fd;
-        pthread_mutex_unlock(&socket_fd_mutex);
+        pthread_mutex_unlock(&global_select_fd_mutex);
     }
     else
     {
@@ -195,15 +211,15 @@ void cmd_send(void *data)
     while (1)
     {
         //sleep(2);
-        pthread_mutex_lock(&socket_fd_mutex);
+        pthread_mutex_lock(&global_select_fd_mutex);
         if ((global_select_fd == 0x3f) || (cmd_data == CMD_ESC))
         {
-            pthread_mutex_unlock(&socket_fd_mutex);
+            pthread_mutex_unlock(&global_select_fd_mutex);
             printf("  \r\n");
             fflush(stdout);
             break;
         }
-        pthread_mutex_unlock(&socket_fd_mutex);
+        pthread_mutex_unlock(&global_select_fd_mutex);
         //printf("cmd_data %x global_select_fd %x send_msg.send_len %d\r\n",
         //      cmd_data, global_select_fd, send_msg.send_len);
 
@@ -246,33 +262,31 @@ void cmd_recv(void *data)
     struct rcv_data_structure *rcv_data = NULL;
     u32 cmd_data = 0;
     char buf[RCV_DATA_BUF_SIZE] = {0};
-    struct socket_tool_control *control = (struct socket_tool_control *)data;
 
     cmd_get_key_async(&cmd_data); //异步获取键值
-    if (SOCKET_SERVER == control->w_type)
+
+    pthread_mutex_lock(&global_select_fd_mutex);
+    if (SUCCESS == find_socket_fd_list((void *)&global_select_fd, &data_p))
     {
-        pthread_mutex_lock(&socket_fd_mutex);
-        if (SUCCESS == find_socket_fd_list((void *)&global_select_fd, &data_p))
-        {
-            DEBUG("find_socket_fd_list addr  %p\r\n", data_p);
-            msg = (struct rcv_sockt_fd_msg *)data_p;
-            DEBUG("tcp_server_deal has find %d table  \r\n", global_select_fd);
-        }
-        pthread_mutex_unlock(&socket_fd_mutex);
-        rcv_data = &(msg->rcv_data);
+        DEBUG("find_socket_fd_list addr  %p\r\n", data_p);
+        msg = (struct rcv_sockt_fd_msg *)data_p;
+        DEBUG("tcp_server_deal has find %d table  \r\n", global_select_fd);
     }
+    pthread_mutex_unlock(&global_select_fd_mutex);
+    rcv_data = &(msg->rcv_data);
+
     while (1)
     {
         //sleep(2);
-        pthread_mutex_lock(&socket_fd_mutex);
+        pthread_mutex_lock(&global_select_fd_mutex);
         if ((global_select_fd == 0x3f) || (cmd_data == 0x1b))
         {
-            pthread_mutex_unlock(&socket_fd_mutex);
+            pthread_mutex_unlock(&global_select_fd_mutex);
             printf("  \r\n");
             fflush(stdout);
             break;
         }
-        pthread_mutex_unlock(&socket_fd_mutex);
+        pthread_mutex_unlock(&global_select_fd_mutex);
 
         // DEBUG("cmd_data %x global_select_fd %x\r\n", cmd_data, global_select_fd);
         if (0 != read_rcv_data_stru(buf, rcv_data))
@@ -313,11 +327,24 @@ void cmd_promat(void)
 u32 socket_cmd_deal_tcp(struct socket_tool_control *control)
 {
     struct cmd_dealentity *entry = NULL;
-    struct cmd_dealentity *entry_start = cmd_table_tcp_server;
-    
+    struct cmd_dealentity *entry_start = NULL;
+
+    if (SOCKET_SERVER == control->w_type)
+        entry_start = cmd_table_tcp_server;
+    else
+        entry_start = cmd_table_tcp_client;
+
     while (1)
     {
         u8 match_flag = FALSE;
+        //客户端状态下没有连接成功直接退出
+        if(SOCKET_CLIENT == control->w_type && global_select_fd == 0x3f)
+        {
+            printf("server offline .");
+            break;
+        }
+    
+
         cmd_promat();
         fflush(stdout);
         memset(cmd_buff, 0, sizeof(cmd_buff));
@@ -329,7 +356,7 @@ u32 socket_cmd_deal_tcp(struct socket_tool_control *control)
             //printf("entry->cmd is %s %d %d \r\n", entry->cmd,strlen(cmd_buff),strlen(entry->cmd));
             if (SUCCESS == strncmp(cmd_buff, entry->cmd, strlen(entry->cmd)))
             {
-                DEBUG("match cmd is  %s \r\n", cmd_buff);
+                //DEBUG("match cmd is  %s \r\n", cmd_buff);
                 match_flag = TRUE;
                 entry->dealentity(control);
             }

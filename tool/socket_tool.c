@@ -129,6 +129,8 @@ static void socket_tool_cmd_parse(u32 opt, u8 *optarg, u8 *argv)
 void *socket_init(void *data)
 {
     struct socket_tool_control *control = (struct socket_tool_control *)data;
+    DEBUG("socket_init in p_type %d w_type %d  \r\n", control->p_type, control->w_type);
+
     if (SOCKET_TCP == control->p_type)
     {
         if (SOCKET_SERVER == control->w_type)
@@ -188,22 +190,14 @@ int main(int argc, char *argv[])
         }
     }
     creat_socket_fd_list();
+
     u32 ret = pthread_create(&thread_id, NULL, socket_init, (void *)&g_socket_tool_control);
     if (0 != ret)
     {
         return ERROR_SOCKET_CREAT_PTH;
     }
-    for (;;)
-    {
-        sleep(1);
-        if (global_socket_fd > 0)
-            break;
-        else
-        {
-            printf("socket work error .please cheack. \r\n");
-            exit_usage();
-        }
-    }
+    DEBUG("creat socket success\r\n");
+    sleep(2);
     if (SOCKET_TCP == g_socket_tool_control.p_type)
     {
         socket_cmd_deal_tcp(&g_socket_tool_control);

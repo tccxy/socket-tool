@@ -24,9 +24,8 @@
 #define SOCKET_SERVER 1
 #define SOCKET_CLIENT 2
 
-extern u32 global_socket_fd;            //全局socketfd
 extern u32 global_select_fd;            //?的ascall码
-extern pthread_mutex_t socket_fd_mutex;
+extern pthread_mutex_t global_select_fd_mutex;
 
 
 /**
