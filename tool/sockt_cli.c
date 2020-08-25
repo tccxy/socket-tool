@@ -324,26 +324,29 @@ void cmd_promat(void)
  * @param work_type 
  * @return u3 
  */
-u32 socket_cmd_deal_tcp(struct socket_tool_control *control)
+u32 socket_cmd_deal(struct socket_tool_control *control)
 {
     struct cmd_dealentity *entry = NULL;
     struct cmd_dealentity *entry_start = NULL;
-
-    if (SOCKET_SERVER == control->w_type)
-        entry_start = cmd_table_tcp_server;
-    else
-        entry_start = cmd_table_tcp_client;
-
+    if (SOCKET_TCP == control->p_type)
+    {
+        if (SOCKET_SERVER == control->w_type)
+            entry_start = cmd_table_tcp_server;
+        else
+            entry_start = cmd_table_tcp_client;
+    }
+    if (SOCKET_UDP == control->p_type)
+    {
+    }
     while (1)
     {
         u8 match_flag = FALSE;
         //客户端状态下没有连接成功直接退出
-        if(SOCKET_CLIENT == control->w_type && global_select_fd == 0x3f)
+        if (SOCKET_CLIENT == control->w_type && global_select_fd == 0x3f)
         {
-            printf("server offline .");
+            printf("server offline .\r\n");
             break;
         }
-    
 
         cmd_promat();
         fflush(stdout);

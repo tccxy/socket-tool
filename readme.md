@@ -45,10 +45,10 @@ sockt_tool @? >>
 sockt_tool @? >>?
 Commands may be abbreviated . Commands are:
 
-?       help        
-quit    list        
+?       help    quit    
+list
 send    sendfile    
-recv    recvfile   
+recv    recvfile
 
 //执行list可以获得已连接的socket列表，输入相应的fd，提示符会进行相应的显示
 sockt_tool @? >>list
@@ -73,5 +73,18 @@ sockt_tool @5 >>
 //当客户端主动断链后,提示符恢复成 ‘?’
 sockt_tool @? >>
 ```
+Tcp Client 与服务端基本一致，只是ip和port为对方服务器的
+```
+./release/socket-tool -P TCP -4 -C -i 192.168.5.196 -p 12345
+sockt_tool @3 >>?Ambiguous command
+sockt_tool @3 >>?
+Commands may be abbreviated . Commands are:
 
+?       help    quit    
+send    sendfile    
+recv    recvfile    
+sockt_tool @3 >>
+//无list指令而已，其他与server一致，当服务端主动断链后，软件提示后退出
+
+```
 目前只完成了TCP server client 的开发和自测

@@ -24,6 +24,8 @@
 #define SOCKET_SERVER 1
 #define SOCKET_CLIENT 2
 
+#define PORT_REUSE 1
+
 extern u32 global_select_fd;            //?的ascall码
 extern pthread_mutex_t global_select_fd_mutex;
 

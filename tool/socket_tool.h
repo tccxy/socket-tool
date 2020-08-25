@@ -23,6 +23,7 @@ struct socket_tool_control
 {
     u32 p_type;
     u32 w_type;
+    u32 r_use;
     struct sockaddr_in address;//addr msg
 };
 
@@ -36,6 +37,6 @@ struct cmd_dealentity
     char *cmd;
     dealfun dealentity;
 };
-u32 socket_cmd_deal_tcp(struct socket_tool_control *control);
+u32 socket_cmd_deal(struct socket_tool_control *control);
 
 #endif

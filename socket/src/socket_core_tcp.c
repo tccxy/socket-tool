@@ -85,7 +85,7 @@ u32 socket_int_tcp_server(struct sockaddr_in *addr)
 {
     u32 i = 0;
     u32 yes = 0;
-    u32 socket_fd = 0;
+    s32 socket_fd = 0;
     u32 connect_fd = 0;
     s32 ret = 0;
     pthread_t thread_id = 0;
@@ -101,13 +101,17 @@ u32 socket_int_tcp_server(struct sockaddr_in *addr)
         return ERROR_SOCKET_CREAT;
     }
     DEBUG("creat socket_fd success \r\n");
-    setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)); // 允许IP地址复用
-
+    // 允许IP地址复用
+    ret = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+    if (ret < 0)
+    {
+        printf("setsockopt reuse failure %x  .\r\n", ret);
+        return ERROR_SOCKET_SET;
+    }
     ret = bind(socket_fd, (const struct sockaddr *)addr, sizeof(struct sockaddr));
     if (ret < 0)
     {
         printf("bind failure %x ,please Wait a moment try again .\r\n", ret);
-        exit(0);
         return ERROR_SOCKET_BIND;
     }
     DEBUG("bind success \r\n");
@@ -257,7 +261,7 @@ u32 socket_int_tcp_client(struct sockaddr_in *addr)
     }
     global_select_fd = socket_fd;
 
-    while(1)
+    while (1)
     {
         sleep(10);
     }

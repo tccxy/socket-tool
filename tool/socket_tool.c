@@ -21,6 +21,7 @@ static u8 help[] =
     \r\n  options\
     \r\n     -h,--help                          get app help\
     \r\n     -P,--protocal                      set work protocal\
+    \r\n     -r,--reuse                         enable port reuse\
     \r\n  p_type\
     \r\n        <UDP | TCP>\
     \r\n  d_type\
@@ -197,12 +198,7 @@ int main(int argc, char *argv[])
         return ERROR_SOCKET_CREAT_PTH;
     }
     DEBUG("creat socket success\r\n");
-    sleep(2);
-    if (SOCKET_TCP == g_socket_tool_control.p_type)
-    {
-        socket_cmd_deal_tcp(&g_socket_tool_control);
-    }
-    if (SOCKET_UDP == g_socket_tool_control.p_type)
-    {
-    }
+    sleep(1);
+
+    socket_cmd_deal(&g_socket_tool_control);
 }
