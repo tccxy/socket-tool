@@ -101,7 +101,7 @@ u32 socket_init_udp_server(struct sockaddr_in *addr)
     pthread_t thread_id = 0;
 
     /* 构造用于UDP通信的套接字 */
-    socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    socket_fd = socket(addr->sin_family, SOCK_DGRAM, 0);
     if (socket_fd < 0)
     {
         printf("creat socket fail\n");

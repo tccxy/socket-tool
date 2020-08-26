@@ -12,24 +12,34 @@
 #ifndef _SOCKET_CLI_H_
 #define _SOCKET_CLI_H_
 
+extern char cmd_buff[128];
 
 #define CMD_ESC  0x1b
 #define CMD_ENTER 0x0a
-#define PROMPT printf("sockt_tool @%c >>",global_select_fd)
-#define PROMPT_FD printf("sockt_tool @%x >>",global_select_fd)
+#define PROMPT_TCP printf("sockt_tool @%c >>",global_select_fd)
+#define PROMPT_FD_TCP printf("sockt_tool @%x >>",global_select_fd)
+#define PROMPT_UDP printf("sockt_tool @%c @all >>",global_select_fd)
+#define PROMPT_FD_UDP printf("sockt_tool @%x @%s >>",global_select_fd,inet_ntoa(filter_ip.sin_addr))
 #define PROMPT_AMBIGUOUS printf("?Ambiguous command\r\n")
 #define CMD_LINE printf("\r\n")
 #define CMD_INPUT_FD printf("please input socket_fd to select 'q' is back\r\n")
 #define CMD_REINPUT_FD printf("input_fd is not found,please reinput! 'q' is back\r\n")
 #define CMD_NO_CONNECT printf("there is no socket connect .\r\n")
 
-void cmd_ambiguous(void *data);
+void cmd_ambiguous_tcp(void *data);
+void cmd_ambiguous_udp(void *data);
 void cmd_quit(void *data);
-void cmd_help(void *data);
-void cmd_list(void *data);
+void cmd_help_tcp(void *data);
+void cmd_help_udp(void *data);
+void cmd_list_tcp(void *data);
 void cmd_send(void *data);
 void cmd_sendfile(void *data);
 void cmd_recv(void *data);
 void cmd_recv_file(void *data);
+void cmd_set_group_udp(void *data);
+void cmd_set_client_udp(void *data);
+void cmd_set_filter_udp(void *data);
+void cmd_promat_tcp(void);
+void cmd_promat_udp(void);
 
 #endif
