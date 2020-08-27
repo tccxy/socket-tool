@@ -4,6 +4,8 @@ socket的测试工具，目前支持TCP/UDP的服务端和客户端采用多线�
 TCp server 整个的数据结构设计模型如下
 ![structire.png](./structure.png)
 
+Tcp client 与Udp相对简单，可以理解为只使用了该数据结构的一个节点
+
 工程的编译基于cmake
 
 ```
@@ -17,25 +19,32 @@ cmake ..
 软件的使用方法 如下
 ```
 ./release/socket-tool -h
-socket_tool1.0 
-     
- Usage   :     
-    socket_tool [options] <p_type> [d_type] [w_type] -i <ipaddr> -p <port>    
-  options    
-     -h,--help                          get app help    
-     -P,--protocal                      set work protocal    
-  p_type    
-        <UDP | TCP>    
-  d_type    
-        -4,--IPv4                       IPv4    
-        -6,--IPv6                       IPv6    
-  w_type    
-        -S,--server                     will work to server    
-        -C,--client                     will work to client    
-  -i,--ip                               local or remote ip address    
-  -p,--port                             local or remote port     
+socket_tool1.0
+
+ Usage   :
+    socket_tool [options] <p_type> [d_type] [w_type] -i <ipaddr> -p <port>
+  options
+     -h,--help                          get app help
+     -P,--protocal                      set work protocal
+     -r,--reuse                         enable port reuse
+  p_type
+        <UDP | TCP>
+  d_type
+        -4,--IPv4                       IPv4
+        -6,--IPv6                       IPv6
+  w_type
+        -S,--server                     will work to server
+        -C,--client                     will work to client
+  -i,--ip                               local or remote ip address
+  -p,--port                             local or remote port
+
+  --Notice
+         Tcp can work S/C mode ,S mode ip:port is local
+                                C mode ip:port is remote
+         Udp the parameter w_type is ignored
+                                         ip:port is local
 ```
-以Tcp Server为例 使用方法如下
+Tcp Server 使用方法如下
 
 ```
 //TCP ipv4 服务器模式 ip 本机 端口
@@ -87,4 +96,36 @@ sockt_tool @3 >>
 //无list指令而已，其他与server一致，当服务端主动断链后，软件提示后退出
 
 ```
-目前只完成了TCP server client 的开发和自测
+
+UDP 如下
+```
+//ip 和 port 为本机的
+./socket-tool -P UDP -4 -i 192.168.5.196 -p 12346
+sockt_tool @3 @all >>?
+Commands may be abbreviated . Commands are:
+
+?           help    quit
+setclient
+setfilterip
+setgroupip
+send       sendfile
+recv       recvfile
+sockt_tool @3 @all >>    
+
+//默认接收所有的消息，可以通过设置filterip来过滤
+sockt_tool @3 @all >>setfilterip
+
+please input filter ip 'q' is back
+192.168.5.196
+sockt_tool @3 F@192.168.5.196 >> 
+//提示符将变成如上，只接受来自192.168.5.196的消息
+//想要发送消息时，先要setclient设置对方的ip信息
+sockt_tool @3 F@192.168.5.196 >>setclient
+
+please input filter ip 'q' is back
+192.168.5.196:12345
+sockt_tool @3 F@192.168.5.196 C@192.168.5.196 >>    
+//提示符会同步变换如上
+
+//加入组播可通过setgroupip设置
+```

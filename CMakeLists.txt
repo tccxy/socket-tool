@@ -1,5 +1,5 @@
 # cmake for socket-tool
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.3.1)
 project(socket-tool)
 # name
 set(PROJECT_NAME socket-tool)
@@ -46,11 +46,9 @@ message(STATUS "PROJECT_SOURCE_DIR: " ${PROJECT_SOURCE_DIR})
 
 # add src
 aux_source_directory(${PROJECT_SOURCE_DIR}/socket/src DIR_SRC)
-aux_source_directory(${PROJECT_SOURCE_DIR}/tool DIR_SRC)
 
 # add include directories
 include_directories(${PROJECT_SOURCE_DIR}/socket/include)
-include_directories(${PROJECT_SOURCE_DIR}/tool)
 # set lib dir
 
 set(3rd_lib pthread m crypt dl rt)

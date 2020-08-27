@@ -63,6 +63,41 @@ void cmd_help_udp(void *data)
  */
 void cmd_set_group_udp(void *data)
 {
+    struct socket_tool_control *control = (struct socket_tool_control *)data;
+    s32 ret = 0;
+    char get_ip[128] = {0};
+    struct ip_mreq group = {0};
+
+    CMD_LINE;
+    CMD_GROUP_FILTERIP;
+    memset(cmd_buff, 0, sizeof(cmd_buff));
+    if (NULL == fgets(cmd_buff, sizeof(cmd_buff), stdin))
+        return;
+
+    while (1)
+    {
+        if ('q' == cmd_buff[0])
+            return;
+        memset(get_ip, 0, sizeof(get_ip));
+        memcpy(get_ip, cmd_buff, strlen(cmd_buff) - 1);
+        ret = inet_pton(control->address.sin_family, (char *)get_ip, &group.imr_multiaddr.s_addr);
+        //printf("cmd_set_filter_udp %s ret %x\r\n", get_ip, ret);
+        if (ret != TRUE)
+            CMD_REINPUT_IP;
+        else
+            break;
+        memset(cmd_buff, 0, sizeof(cmd_buff));
+        if (NULL == fgets(cmd_buff, sizeof(cmd_buff), stdin))
+            return;
+    }
+    group.imr_interface.s_addr = inet_addr("0.0.0.0");
+    ret = setsockopt(global_select_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &group, sizeof(group));
+    if (ret < 0)
+    {
+        printf("setgroup ip failure %x ,please Wait a moment try again .\r\n", ret);
+        exit(0);
+        return;
+    }
 }
 
 /**
