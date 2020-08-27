@@ -89,6 +89,5 @@ u32 read_rcv_data_stru(void *data, struct rcv_data_structure *stru);
 
 u32 socket_int_tcp_server(struct sockaddr_in *addr);
 u32 socket_int_tcp_client(struct sockaddr_in *addr);
-u32 socket_init_udp_server(struct sockaddr_in *addr);
-u32 socket_init_udp_client(struct sockaddr_in *addr);
+u32 socket_init_udp(struct sockaddr_in *addr);
 #endif

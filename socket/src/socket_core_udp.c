@@ -107,7 +107,7 @@ void *udp_deal(void *cfd)
  * @param addr 地址信息
  * @return u32 操作结果
  */
-u32 socket_init_udp_server(struct sockaddr_in *addr)
+u32 socket_init_udp(struct sockaddr_in *addr)
 {
     s32 socket_fd = 0;
     s32 ret;
@@ -151,46 +151,4 @@ u32 socket_init_udp_server(struct sockaddr_in *addr)
         sleep(10);
     }
     return SUCCESS;
-}
-
-/**
- * @brief 
- * 
- * @param addr 
- * @return u32 
- */
-u32 socket_init_udp_client(struct sockaddr_in *addr)
-{
-    u32 socket_fd = 0;
-    u32 ret = 0;
-    pthread_t thread_id = 0;
-    void *data_p = NULL;
-
-    DEBUG("socket_int_tcp_client in \r\n");
-    socket_fd = socket(addr->sin_family, SOCK_STREAM, 0);
-    if ((socket_fd) < 0)
-    {
-        printf("creat socket_fd failure \r\n");
-        return ERROR_SOCKET_CREAT;
-    }
-
-    if (connect(socket_fd, (struct sockaddr *)addr, sizeof(struct sockaddr_in)) == -1)
-    {
-        printf("connect failure \r\n");
-        return ERROR_SOCKET_CONNECT;
-    }
-    //增加socketfd的表
-    add_socket_fd_list((void *)&socket_fd, &data_p);
-    ret = pthread_create(&thread_id, NULL, udp_deal, (void *)&socket_fd);
-    if (0 != ret)
-    {
-        return ERROR_SOCKET_CREAT_PTH;
-    }
-    global_select_fd = socket_fd;
-
-    while (1)
-    {
-        sleep(10);
-    }
-    return 0;
 }

@@ -15,6 +15,8 @@
 extern char cmd_buff[128];
 extern struct send_data_buf send_msg;  //发送buf
 extern pthread_mutex_t send_msg_mutex; //发送数据锁
+extern key_t send_key;
+
 
 #define CMD_ESC 0x1b
 #define CMD_ENTER 0x0a
@@ -47,7 +49,7 @@ void cmd_recv_file(void *data);
 void cmd_set_group_udp(void *data);
 void cmd_set_client_udp(void *data);
 void cmd_set_filter_udp(void *data);
-void cmd_promat_tcp(void);
-void cmd_promat_udp(void);
+void cmd_promat_tcp(void *data);
+void cmd_promat_udp(void *data);
 
 #endif

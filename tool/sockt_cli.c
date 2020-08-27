@@ -19,6 +19,8 @@ pthread_mutex_t global_select_fd_mutex = PTHREAD_MUTEX_INITIALIZER; //select_fd 
 char cmd_buff[128] = {0};
 struct send_data_buf send_msg = {0};                        //发送buf
 pthread_mutex_t send_msg_mutex = PTHREAD_MUTEX_INITIALIZER; //发送数据锁
+key_t send_key = 0x200;
+
 static struct cmd_dealentity cmd_table_tcp_server[] = {
     {"?", cmd_ambiguous_tcp},
     {"help", cmd_help_tcp},
@@ -42,7 +44,7 @@ static struct cmd_dealentity cmd_table_tcp_client[] = {
     {NULL, NULL},
 };
 
-static struct cmd_dealentity cmd_table_udp[] = {
+static struct cmd_dealentity cmd_table_udp_server[] = {
     {"?", cmd_ambiguous_udp},
     {"help", cmd_help_udp},
     {"quit", cmd_quit},
@@ -56,23 +58,38 @@ static struct cmd_dealentity cmd_table_udp[] = {
     {NULL, NULL},
 };
 
+
 void *get_key_async(void *data)
 {
     u32 get_num = 0;
+    s32 semid;
     struct termios stored_settings;
     struct termios new_settings;
+    struct sembuf v_buf;
+
+    v_buf.sem_num = 0;
+    v_buf.sem_op = 1;         //信号量加1
+    v_buf.sem_flg = SEM_UNDO; //阻塞
+
     tcgetattr(0, &stored_settings);
     new_settings = stored_settings;
     new_settings.c_lflag &= (~ICANON);
     new_settings.c_cc[VTIME] = 0;
     new_settings.c_cc[VMIN] = 1;
     tcsetattr(0, TCSANOW, &new_settings);
+    if ((semid = semget(send_key, 1, IPC_CREAT | 0666)) == -1)
+    {
+        printf("send msg semget error .");
+        exit(0);
+    }
+
     while (1)
     {
         *(u32 *)data = getchar();
 
         if ((*(u32 *)data == CMD_ESC) || (global_select_fd == 0x3f))
         {
+            semop(semid, &v_buf, 1); //信号量+1
             break;
         }
 
@@ -85,6 +102,7 @@ void *get_key_async(void *data)
             if (get_num >= SEND_DATA_BUF_SIZE)
                 *(u32 *)data = CMD_ENTER;
             get_num = 0;
+            semop(semid, &v_buf, 1); //信号量+1
         }
         pthread_mutex_unlock(&send_msg_mutex);
     }
@@ -199,6 +217,8 @@ u32 socket_cmd_deal(struct socket_tool_control *control)
 {
     struct cmd_dealentity *entry = NULL;
     struct cmd_dealentity *entry_start = NULL;
+    s32 semid;
+
     if (SOCKET_TCP == control->p_type)
     {
         if (SOCKET_SERVER == control->w_type)
@@ -208,7 +228,18 @@ u32 socket_cmd_deal(struct socket_tool_control *control)
     }
     if (SOCKET_UDP == control->p_type)
     {
-        entry_start = cmd_table_udp;
+        entry_start = cmd_table_udp_server;
+    }
+    if ((semid = semget(send_key, 1, IPC_CREAT | 0666)) == -1)
+    {
+        printf("send msg semget error .");
+        exit(0);
+    }
+    else
+    {
+        semun arg;
+        arg.val = 1;                   //信号量的初值
+        semctl(semid, 0, SETVAL, arg); //设置信号量集中的一个单独的信号量的值
     }
     while (1)
     {
@@ -220,9 +251,9 @@ u32 socket_cmd_deal(struct socket_tool_control *control)
             break;
         }
         if (SOCKET_TCP == control->p_type)
-            cmd_promat_tcp();
+            cmd_promat_tcp(control);
         if (SOCKET_UDP == control->p_type)
-            cmd_promat_udp();
+            cmd_promat_udp(control);
         fflush(stdout);
         memset(cmd_buff, 0, sizeof(cmd_buff));
         if (NULL == fgets(cmd_buff, sizeof(cmd_buff), stdin))

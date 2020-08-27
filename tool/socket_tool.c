@@ -32,6 +32,12 @@ static u8 help[] =
     \r\n        -C,--client                     will work to client\
     \r\n  -i,--ip                               local or remote ip address\
     \r\n  -p,--port                             local or remote port\
+    \r\n  \
+    \r\n  --Notice                              \
+    \r\n         Tcp can work S/C mode ,S mode ip:port is local\
+    \r\n                                C mode ip:port is remote\
+    \r\n         Udp the parameter w_type is ignored\
+    \r\n                                         ip:port is local\
     ";
 
 static u8 exit_prese_msg[] =
@@ -144,10 +150,7 @@ void *socket_init(void *data)
     }
     if (SOCKET_UDP == control->p_type)
     {
-        if (SOCKET_SERVER == control->w_type)
-            socket_init_udp_server(&control->address);
-        else
-            socket_init_udp_client(&control->address);
+        socket_init_udp(&control->address);
     }
     DEBUG("socket_init out \r\n");
     return SUCCESS;

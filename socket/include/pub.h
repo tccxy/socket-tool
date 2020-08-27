@@ -28,6 +28,8 @@
 #include <getopt.h>
 #include <pthread.h>
 #include <termios.h>
+#include <sys/sem.h>
+#include <sys/ipc.h>
 
 #include "types.h"
 #include "error.h"

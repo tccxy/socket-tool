@@ -11,8 +11,6 @@
 #include "pub.h"
 #include "socket_cli.h"
 
-
-
 /**
  * @brief 模糊命令查询
  * 
@@ -104,12 +102,24 @@ void cmd_list_tcp(void *data)
 void cmd_send_tcp(void *data)
 {
     u32 cmd_data = 0;
+    s32 semid;
+    struct sembuf p_buf;
+
+    p_buf.sem_num = 0;
+    p_buf.sem_op = -1; //信号量减1，注意这一行的1前面有个负号
+    p_buf.sem_flg = SEM_UNDO;
 
     cmd_get_key_async(&cmd_data); //异步获取键值
-
+    if ((semid = semget(send_key, 1, IPC_CREAT | 0666)) == -1)
+    {
+        printf("send msg semget error .");
+        exit(0);
+    }
     while (1)
     {
         //sleep(2);
+        semop(semid, &p_buf, 1);
+
         pthread_mutex_lock(&global_select_fd_mutex);
         if ((global_select_fd == 0x3f) || (cmd_data == CMD_ESC))
         {
@@ -144,7 +154,7 @@ void cmd_send_tcp(void *data)
  * @brief cmd提示符
  * 
  */
-void cmd_promat_tcp(void)
+void cmd_promat_tcp(void *data)
 {
     if (global_select_fd != 0x3f)
         PROMPT_FD_TCP;

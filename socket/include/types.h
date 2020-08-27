@@ -44,4 +44,10 @@ typedef signed   long       s64;
 typedef unsigned char       u8;
 typedef signed char         s8;
 
+typedef union _semun {
+  int val;
+  struct semid_ds *buf;
+  char *array;
+} semun;
+
 #endif

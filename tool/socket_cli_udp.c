@@ -46,8 +46,8 @@ void cmd_help_udp(void *data)
         "\
     \r\n send         --->  Send msg to select fd input through the console\
     \r\n recv         --->  Recv msg from select fd andoutput to the console\
-    \r\n setclient    --->  set client ip msg (only server-is-valid)\
-    \r\n setfilterip  --->  Set a valid receive ip ,default receive all (only server-is-valid) \
+    \r\n setclient    --->  set client ip msg\
+    \r\n setfilterip  --->  Set a valid receive ip ,default receive all\
     \r\n setgroupip   --->  Set group ip \
     \r\n sendfile     --->  Send the local filefile to select fd\
     \r\n recvfile     --->  Recv msg from select fd and save to file\
@@ -179,11 +179,22 @@ void cmd_set_filter_udp(void *data)
 void cmd_send_udp(void *data)
 {
     u32 cmd_data = 0;
+    s32 semid;
+    struct sembuf p_buf;
+
+    p_buf.sem_num = 0;
+    p_buf.sem_op = -1; //信号量减1，注意这一行的1前面有个负号
+    p_buf.sem_flg = SEM_UNDO;
 
     if (FALSE == client_flag)
     {
         printf("please input client msg .");
         return;
+    }
+    if ((semid = semget(send_key, 1, IPC_CREAT | 0666)) == -1)
+    {
+        printf("send msg semget error .");
+        exit(0);
     }
 
     cmd_get_key_async(&cmd_data); //异步获取键值
@@ -191,6 +202,8 @@ void cmd_send_udp(void *data)
     while (1)
     {
         //sleep(2);
+        semop(semid, &p_buf, 1);
+
         pthread_mutex_lock(&global_select_fd_mutex);
         if ((global_select_fd == 0x3f) || (cmd_data == CMD_ESC))
         {
@@ -201,8 +214,9 @@ void cmd_send_udp(void *data)
         }
         pthread_mutex_unlock(&global_select_fd_mutex);
 
-        //printf("client_ip.sin_addr %x %s %d\r\n", client_ip.sin_addr,
-        //inet_ntoa(client_ip.sin_addr), client_ip.sin_port);
+        //printf("client_ip.sin_addr %x %s %d msg %d\r\n", client_ip.sin_addr,
+        //     inet_ntoa(client_ip.sin_addr), client_ip.sin_port, send_msg.send_len);
+
         pthread_mutex_lock(&send_msg_mutex);
 
         if (send_msg.send_len != sendto(global_select_fd, send_msg.send_buf,
@@ -225,7 +239,7 @@ void cmd_send_udp(void *data)
  * @brief cmd提示符
  * 
  */
-void cmd_promat_udp(void)
+void cmd_promat_udp(void *data)
 {
     if (TRUE == filter_flag && FALSE == client_flag)
         PROMPT_F_UDP;
