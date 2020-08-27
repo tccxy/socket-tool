@@ -18,8 +18,8 @@
 #define SEND_DATA_BUF_SIZE 1024         //每一次接收的最大字节数
 
 
-#define SOCKET_TCP 1
-#define SOCKET_UDP 2
+#define SOCKET_TCP SOCK_STREAM
+#define SOCKET_UDP SOCK_DGRAM
 
 #define SOCKET_SERVER 1
 #define SOCKET_CLIENT 2
@@ -69,6 +69,7 @@ struct rcv_data_structure
 struct rcv_sockt_fd_msg
 {
     u32 s_fd;                  //socket fd
+    u32 pad;           //其他可能用到的flag
     struct sockaddr_in c_addr; //对应客户端的地址信息
     //u32 c_port; //对应客户端的端口号
     struct rcv_data_structure rcv_data;

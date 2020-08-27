@@ -11,6 +11,8 @@
 #include "pub.h"
 #include "socket_cli.h"
 
+
+
 /**
  * @brief 模糊命令查询
  * 
@@ -91,6 +93,50 @@ void cmd_list_tcp(void *data)
     else
     {
         CMD_NO_CONNECT;
+    }
+}
+
+/**
+ * @brief send命令
+ * 
+ * @paramdata 
+ */
+void cmd_send_tcp(void *data)
+{
+    u32 cmd_data = 0;
+
+    cmd_get_key_async(&cmd_data); //异步获取键值
+
+    while (1)
+    {
+        //sleep(2);
+        pthread_mutex_lock(&global_select_fd_mutex);
+        if ((global_select_fd == 0x3f) || (cmd_data == CMD_ESC))
+        {
+            pthread_mutex_unlock(&global_select_fd_mutex);
+            printf("  \r\n");
+            fflush(stdout);
+            break;
+        }
+        pthread_mutex_unlock(&global_select_fd_mutex);
+        //printf("cmd_data %x global_select_fd %x send_msg.send_len %d\r\n",
+        //      cmd_data, global_select_fd, send_msg.send_len);
+
+        pthread_mutex_lock(&send_msg_mutex);
+
+        if (send_msg.send_len != send(global_select_fd, send_msg.send_buf,
+                                      send_msg.send_len, 0))
+        {
+            printf("send error .may be the connect has exit \r\n");
+            fflush(stdout);
+            pthread_mutex_unlock(&send_msg_mutex);
+            break;
+        }
+        else
+        {
+            send_msg.send_len = 0;
+        }
+        pthread_mutex_unlock(&send_msg_mutex);
     }
 }
 

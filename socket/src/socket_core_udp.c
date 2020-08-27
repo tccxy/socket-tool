@@ -48,6 +48,8 @@ void *udp_deal(void *cfd)
     u32 size;
     s32 socket_fd = 0;
     void *data_p = NULL;
+    struct sockaddr_in client = {0};
+    u32 client_address_size = (sizeof(client));
     struct rcv_sockt_fd_msg *msg = NULL;
 
     socket_fd = *((u32 *)(cfd));
@@ -60,7 +62,9 @@ void *udp_deal(void *cfd)
     while (1)
     {
         memset(buf, '\0', sizeof(buf));
-        size = read(socket_fd, buf, sizeof(buf));
+        //size = read(socket_fd, buf, sizeof(buf));
+        size = recvfrom(socket_fd, buf, sizeof(buf), 0, (struct sockaddr *)&client,
+                        &client_address_size);
         if (size <= 0) //没有接收到数据，关闭描述符，释放在TCPServer申请的空间
         {
             DEBUG("%x has exit \r\n", connect_fd);
@@ -80,8 +84,18 @@ void *udp_deal(void *cfd)
         }
         else
         {
-            DEBUG("TCP_Analyzer:%s,%d %p\r\n", buf, (int)size, msg);
-            write_rcv_data_stru(buf, &(msg->rcv_data)); //像buff中写入数据
+            DEBUG("cip %x fip %x \r\n", client.sin_addr.s_addr, msg->c_addr.sin_addr.s_addr);
+            if (msg->pad == TRUE) //使能了消息过滤
+            {
+                if (client.sin_addr.s_addr == msg->c_addr.sin_addr.s_addr)
+                {
+                    write_rcv_data_stru(buf, &(msg->rcv_data)); //像buff中写入数据
+                }
+            }
+            else
+            {
+                write_rcv_data_stru(buf, &(msg->rcv_data)); //像buff中写入数据
+            }
         }
     }
     return SUCCESS;

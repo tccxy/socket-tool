@@ -111,7 +111,10 @@ static void socket_tool_cmd_parse(u32 opt, u8 *optarg, u8 *argv)
     if ('i' == opt)
     {
         DEBUG("ip is %s \r\n", optarg);
-        if (inet_aton((char *)optarg, &g_socket_tool_control.address.sin_addr) < 0)
+
+        //if (inet_aton((char *)optarg, &g_socket_tool_control.address.sin_addr) < 0)
+        if (inet_pton(g_socket_tool_control.address.sin_family, (char *)optarg,
+                      &g_socket_tool_control.address.sin_addr) != TRUE)
             printf("the parameter -i is error please check \r\n");
     }
     if ('p' == opt)

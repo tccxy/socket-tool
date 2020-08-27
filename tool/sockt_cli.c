@@ -17,16 +17,14 @@ u32 global_select_fd = 0x3f;                                        //?的ascall
 pthread_mutex_t global_select_fd_mutex = PTHREAD_MUTEX_INITIALIZER; //select_fd 锁
 
 char cmd_buff[128] = {0};
-
-static struct send_data_buf send_msg = {0};                        //发送buf
-static pthread_mutex_t send_msg_mutex = PTHREAD_MUTEX_INITIALIZER; //发送数据锁
-
+struct send_data_buf send_msg = {0};                        //发送buf
+pthread_mutex_t send_msg_mutex = PTHREAD_MUTEX_INITIALIZER; //发送数据锁
 static struct cmd_dealentity cmd_table_tcp_server[] = {
     {"?", cmd_ambiguous_tcp},
     {"help", cmd_help_tcp},
     {"quit", cmd_quit},
     {"list", cmd_list_tcp},
-    {"send", cmd_send},
+    {"send", cmd_send_tcp},
     {"sendfile", cmd_sendfile},
     {"recv", cmd_recv},
     {"recvfile", cmd_recv_file},
@@ -37,7 +35,7 @@ static struct cmd_dealentity cmd_table_tcp_client[] = {
     {"?", cmd_ambiguous_tcp},
     {"help", cmd_help_tcp},
     {"quit", cmd_quit},
-    {"send", cmd_send},
+    {"send", cmd_send_tcp},
     {"sendfile", cmd_sendfile},
     {"recv", cmd_recv},
     {"recvfile", cmd_recv_file},
@@ -45,13 +43,13 @@ static struct cmd_dealentity cmd_table_tcp_client[] = {
 };
 
 static struct cmd_dealentity cmd_table_udp[] = {
-    {"?", cmd_ambiguous_tcp},
-    {"help", cmd_help_tcp},
+    {"?", cmd_ambiguous_udp},
+    {"help", cmd_help_udp},
     {"quit", cmd_quit},
     {"setclient", cmd_set_client_udp},
     {"setgroupip", cmd_set_group_udp},
     {"setfilterip", cmd_set_filter_udp},
-    {"send", cmd_send},
+    {"send", cmd_send_udp},
     {"sendfile", cmd_sendfile},
     {"recv", cmd_recv},
     {"recvfile", cmd_recv_file},
@@ -124,50 +122,6 @@ void cmd_get_key_async(void *data)
 void cmd_quit(void *data)
 {
     exit(0);
-}
-
-/**
- * @brief send命令
- * 
- * @paramdata 
- */
-void cmd_send(void *data)
-{
-    u32 cmd_data = 0;
-
-    cmd_get_key_async(&cmd_data); //异步获取键值
-
-    while (1)
-    {
-        //sleep(2);
-        pthread_mutex_lock(&global_select_fd_mutex);
-        if ((global_select_fd == 0x3f) || (cmd_data == CMD_ESC))
-        {
-            pthread_mutex_unlock(&global_select_fd_mutex);
-            printf("  \r\n");
-            fflush(stdout);
-            break;
-        }
-        pthread_mutex_unlock(&global_select_fd_mutex);
-        //printf("cmd_data %x global_select_fd %x send_msg.send_len %d\r\n",
-        //      cmd_data, global_select_fd, send_msg.send_len);
-
-        pthread_mutex_lock(&send_msg_mutex);
-
-        if (send_msg.send_len != send(global_select_fd, send_msg.send_buf,
-                                      send_msg.send_len, 0))
-        {
-            printf("send error .may be the connect has exit \r\n");
-            fflush(stdout);
-            pthread_mutex_unlock(&send_msg_mutex);
-            break;
-        }
-        else
-        {
-            send_msg.send_len = 0;
-        }
-        pthread_mutex_unlock(&send_msg_mutex);
-    }
 }
 
 /**
