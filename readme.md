@@ -54,10 +54,14 @@ sockt_tool @? >>
 sockt_tool @? >>?
 Commands may be abbreviated . Commands are:
 
-?       help    quit    
-list
-send    sendfile    
-recv    recvfile
+?            
+help         
+quit         
+list         
+send         
+recv         
+sendfile     
+recvfile
 
 //执行list可以获得已连接的socket列表，输入相应的fd，提示符会进行相应的显示
 sockt_tool @? >>list
@@ -69,7 +73,7 @@ please input socket_fd to select 'q' is back
 sockt_tool @4 >>
 //然后就可以执行相应的recv send 等操作了 ‘esc’键退出接收状态
 sockt_tool @4 >>recv
-this is socket_fd 4  
+
 sockt_tool @4 >>
 //如果想切换另一路，直接再次输入list即可
 sockt_tool @4 >>list
@@ -104,12 +108,16 @@ UDP 如下
 sockt_tool @3 @all >>?
 Commands may be abbreviated . Commands are:
 
-?           help    quit
-setclient
-setfilterip
-setgroupip
-send       sendfile
-recv       recvfile
+?            
+help         
+quit         
+setclient    
+setfilterip  
+setgroupip   
+send         
+recv         
+sendfile     
+recvfile  
 sockt_tool @3 @all >>    
 
 //默认接收所有的消息，可以通过设置filterip来过滤

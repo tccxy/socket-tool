@@ -27,12 +27,16 @@ void cmd_ambiguous_udp(void *data)
 {
     printf("Commands may be abbreviated . Commands are:\r\n");
     printf("\r\n");
-    printf("?           help    quit    \r\n");
-    printf("setclient        \r\n");
-    printf("setfilterip        \r\n");
-    printf("setgroupip        \r\n");
-    printf("send       sendfile    \r\n");
-    printf("recv       recvfile    \r\n");
+    printf("?            \r\n");
+    printf("help         \r\n");
+    printf("quit         \r\n");
+    printf("setclient    \r\n");
+    printf("setfilterip  \r\n");
+    printf("setgroupip   \r\n");
+    printf("send         \r\n");
+    printf("recv         \r\n");
+    printf("sendfile     \r\n");
+    printf("recvfile     \r\n");
 }
 
 /**

@@ -20,10 +20,14 @@ void cmd_ambiguous_tcp(void *data)
 {
     printf("Commands may be abbreviated . Commands are:\r\n");
     printf("\r\n");
-    printf("?       help    quit    \r\n");
-    printf("list        \r\n");
-    printf("send    sendfile    \r\n");
-    printf("recv    recvfile    \r\n");
+    printf("?            \r\n");
+    printf("help         \r\n");
+    printf("quit         \r\n");
+    printf("list         \r\n");
+    printf("send         \r\n");
+    printf("recv         \r\n");
+    printf("sendfile     \r\n");
+    printf("recvfile     \r\n");
 }
 
 /**
@@ -36,6 +40,8 @@ void cmd_help_tcp(void *data)
 {
     u8 help_msg[] =
         "\
+    \r\n help     --->  Display this msg\
+    \r\n quit     --->  Quit this app\
     \r\n list     --->  List all linked sockets fd and client msg(only server-is-valid) \
     \r\n send     --->  Send msg to select fd input through the console\
     \r\n recv     --->  Recv msg from select fd andoutput to the console\
