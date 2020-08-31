@@ -30,6 +30,7 @@ extern key_t send_key;
 #define CMD_LINE printf("\r\n")
 #define CMD_INPUT_FD printf("please input socket_fd to select 'q' is back\r\n")
 #define CMD_INPUT_FILTERIP printf("please input filter ip 'q' is back\r\n")
+#define CMD_INPUT_CLIENTIP printf("please input client msg(ip:port) 'q' is back\r\n")
 #define CMD_GROUP_FILTERIP printf("please input group ip 'q' is back\r\n")
 #define CMD_REINPUT_FD printf("input_fd is not found,please reinput! 'q' is back\r\n")
 #define CMD_REINPUT_IP printf("input_ip is error ,please reinput! 'q' is back\r\n")

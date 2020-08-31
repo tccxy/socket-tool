@@ -118,7 +118,7 @@ void cmd_set_client_udp(void *data)
     u16 port = 0;
 
     CMD_LINE;
-    CMD_INPUT_FILTERIP;
+    CMD_INPUT_CLIENTIP;
     memset(cmd_buff, 0, sizeof(cmd_buff));
     if (NULL == fgets(cmd_buff, sizeof(cmd_buff), stdin))
         return;

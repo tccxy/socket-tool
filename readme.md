@@ -131,7 +131,7 @@ sockt_tool @3 F@192.168.5.196 >>
 //想要发送消息时，先要setclient设置对方的ip信息
 sockt_tool @3 F@192.168.5.196 >>setclient
 
-please input filter ip 'q' is back
+please input client msg(ip:port) 'q' is back
 192.168.5.196:12345
 sockt_tool @3 F@192.168.5.196 C@192.168.5.196 >>    
 //提示符会同步变换如上
